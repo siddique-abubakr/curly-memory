@@ -1,0 +1,25 @@
+[project]
+name = "curly-memory"
+version = "0.1.0"
+description = "Jira scripts for automating Performance review metrics @Arbisoft"
+authors = [
+    {name = "Abubakar Siddique",email = "abubakar.siddique@arbisoft.com"}
+]
+license = {text = "BSD 3-Clause"}
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "jira (>=3.8.0,<4.0.0)",
+    "argparse (>=1.4.0,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+black = "^25.1.0"
+flake8 = "^7.3.0"
+
