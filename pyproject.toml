@@ -10,9 +10,13 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "jira (>=3.8.0,<4.0.0)",
-    "argparse (>=1.4.0,<2.0.0)"
+    "argparse (>=1.4.0,<2.0.0)",
+    "requests (>=2.32.4,<3.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)"
 ]
-
+packages = [
+    { include = "clients", from = "src" }
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -22,4 +26,8 @@ build-backend = "poetry.core.masonry.api"
 pytest = "^8.4.1"
 black = "^25.1.0"
 flake8 = "^7.3.0"
+
+[tool.black]
+line-length = 88
+skip-string-normalization = false
 
