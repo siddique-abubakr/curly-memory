@@ -12,7 +12,7 @@ class BoardService:
         """Get all boards for a specific project."""
         try:
             boards = self.jira.boards(projectKeyOrID=project)
-            self.logger.info(f"Found {len(boards)} boards for project {project}")
+            self.logger.debug(f"Found {len(boards)} boards for project {project}")
             return boards
         except Exception as e:
             self.logger.error(f"Error fetching boards for project {project}: {e}")
@@ -23,7 +23,7 @@ class BoardService:
     ) -> list[any]:
         """Filter boards to only include scrum boards."""
         scrum_boards = [board for board in boards if board.id in scrum_board_ids]
-        self.logger.info(f"Filtered to {len(scrum_boards)} scrum boards")
+        self.logger.debug(f"Filtered to {len(scrum_boards)} scrum boards")
         return scrum_boards
 
     def get_board_info(self, board) -> dict[str, any]:
