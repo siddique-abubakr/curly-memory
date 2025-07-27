@@ -15,7 +15,8 @@ dependencies = [
     "python-dotenv (>=1.1.1,<2.0.0)"
 ]
 packages = [
-    { include = "clients", from = "src" }
+    { include = "clients", from = "src" },
+    { include = "core", from = "src" },
 ]
 
 [build-system]
