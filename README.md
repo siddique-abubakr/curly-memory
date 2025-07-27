@@ -248,7 +248,7 @@ make html
 
 The documentation is automatically deployed to GitHub Pages when you push to the main branch.
 
-**Live Documentation**: https://your-username.github.io/curly-memory/
+**Live Documentation**: https://siddique-abubakr.github.io/curly-memory/
 
 **Manual Deployment**:
 ```bash
@@ -258,7 +258,7 @@ make html
 
 # Deploy to gh-pages branch
 git checkout gh-pages
-cp -r _build/html/* ./
+cp -r _build/html/* ../
 git add .
 git commit -m "Update documentation"
 git push origin gh-pages

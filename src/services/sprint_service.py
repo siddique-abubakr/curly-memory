@@ -34,7 +34,7 @@ class SprintService:
                 if len(sprints_page) < max_results:
                     break
 
-            self.logger.info(
+            self.logger.debug(
                 f"Found {len(all_sprints)} total sprints for board {board_id}"
             )
 
@@ -43,7 +43,7 @@ class SprintService:
 
             # Apply filters
             filtered_sprints = self._apply_sprint_filters(all_sprints, filter_config)
-            self.logger.info(
+            self.logger.debug(
                 f"Filtered to {len(filtered_sprints)} sprints for board {board_id}"
             )
 
@@ -149,7 +149,7 @@ class SprintService:
 
             is_active = start_date < current_time < end_date
             status = "active" if is_active else "not active"
-            self.logger.info(f"Sprint {sprint.name} (ID: {sprint.id}) is {status}")
+            self.logger.debug(f"Sprint {sprint.name} (ID: {sprint.id}) is {status}")
             return is_active
         except Exception as e:
             self.logger.error(f"Error checking sprint status: {e}")

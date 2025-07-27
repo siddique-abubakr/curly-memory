@@ -42,7 +42,7 @@ class Logger:
             self.logger = logging.getLogger(name)
 
             # Configuration
-            self.logger.setLevel(logging.DEBUG)
+            self.logger.setLevel(logging.INFO)
             self.logger.addHandler(logging.StreamHandler())
 
             # File handlers
