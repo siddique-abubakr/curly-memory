@@ -19,7 +19,7 @@ class IssueService:
                 f"type = Bug AND status = Done"
             )
             issues = self.jira.search_issues(jql)
-            self.logger.info(f"Found {len(issues)} done bugs for sprint {sprint_id}")
+            self.logger.debug(f"Found {len(issues)} done bugs for sprint {sprint_id}")
             return issues
         except Exception as e:
             self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
@@ -62,7 +62,7 @@ class IssueService:
                     or not hasattr(issue.fields, "created")
                     or not hasattr(issue.fields, "updated")
                 ):
-                    self.logger.warning(
+                    self.logger.debug(
                         f"Skipping issue without required fields: {
                             getattr(issue, 'key', 'Unknown')
                         }"
@@ -208,7 +208,7 @@ class IssueService:
                 },
             }
 
-        self.logger.info(
+        self.logger.debug(
             f"Processing {len(valid_issues)} valid issues out of {len(issues)} total"
         )
 

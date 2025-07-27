@@ -23,7 +23,7 @@ class JiraAnalyzer:
         sprint_filter_config: dict[str, any] = None,
     ) -> dict[str, any]:
         """Analyze a single project and its scrum boards."""
-        self.logger.info(f"Starting analysis for project: {project}")
+        self.logger.debug(f"Starting analysis for project: {project}")
 
         results = {
             "project": project,
@@ -64,7 +64,7 @@ class JiraAnalyzer:
         self, board: any, project: str, sprint_filter_config: dict[str, any] = None
     ) -> dict[str, any]:
         """Analyze a single board."""
-        self.logger.info(f"Analyzing board: {board.name} (ID: {board.id})")
+        self.logger.debug(f"Analyzing board: {board.name} (ID: {board.id})")
 
         board_result = {
             "board_info": self.board_service.get_board_info(board),
@@ -90,7 +90,7 @@ class JiraAnalyzer:
 
     def _analyze_sprint(self, sprint: any, project: str) -> dict[str, any]:
         """Analyze a single sprint."""
-        self.logger.info(f"Analyzing sprint: {sprint.name} (ID: {sprint.id})")
+        self.logger.debug(f"Analyzing sprint: {sprint.name} (ID: {sprint.id})")
 
         sprint_info = self.sprint_service.get_sprint_info(sprint)
 
