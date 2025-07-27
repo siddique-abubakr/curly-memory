@@ -1,0 +1,464 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Services API &mdash; Curly Memory 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Installation" href="../installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Curly Memory
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Services API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-services.jira_analyzer">JiraAnalyzer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#services.jira_analyzer.JiraAnalyzer"><code class="docutils literal notranslate"><span class="pre">JiraAnalyzer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#services.jira_analyzer.JiraAnalyzer.__init__"><code class="docutils literal notranslate"><span class="pre">JiraAnalyzer.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.jira_analyzer.JiraAnalyzer.analyze_project"><code class="docutils literal notranslate"><span class="pre">JiraAnalyzer.analyze_project()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.jira_analyzer.JiraAnalyzer._analyze_board"><code class="docutils literal notranslate"><span class="pre">JiraAnalyzer._analyze_board()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.jira_analyzer.JiraAnalyzer._analyze_sprint"><code class="docutils literal notranslate"><span class="pre">JiraAnalyzer._analyze_sprint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.jira_analyzer.JiraAnalyzer.generate_report"><code class="docutils literal notranslate"><span class="pre">JiraAnalyzer.generate_report()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-services.board_service">BoardService</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#services.board_service.BoardService"><code class="docutils literal notranslate"><span class="pre">BoardService</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#services.board_service.BoardService.__init__"><code class="docutils literal notranslate"><span class="pre">BoardService.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.board_service.BoardService.get_boards_for_project"><code class="docutils literal notranslate"><span class="pre">BoardService.get_boards_for_project()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.board_service.BoardService.filter_scrum_boards"><code class="docutils literal notranslate"><span class="pre">BoardService.filter_scrum_boards()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.board_service.BoardService.get_board_info"><code class="docutils literal notranslate"><span class="pre">BoardService.get_board_info()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-services.sprint_service">SprintService</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#services.sprint_service.SprintService"><code class="docutils literal notranslate"><span class="pre">SprintService</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService.__init__"><code class="docutils literal notranslate"><span class="pre">SprintService.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService.get_sprints_for_board"><code class="docutils literal notranslate"><span class="pre">SprintService.get_sprints_for_board()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService._apply_sprint_filters"><code class="docutils literal notranslate"><span class="pre">SprintService._apply_sprint_filters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService._sprint_matches_filters"><code class="docutils literal notranslate"><span class="pre">SprintService._sprint_matches_filters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService._sprint_in_date_range"><code class="docutils literal notranslate"><span class="pre">SprintService._sprint_in_date_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService._sprint_matches_state"><code class="docutils literal notranslate"><span class="pre">SprintService._sprint_matches_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService.get_active_sprints"><code class="docutils literal notranslate"><span class="pre">SprintService.get_active_sprints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService.is_sprint_active"><code class="docutils literal notranslate"><span class="pre">SprintService.is_sprint_active()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.sprint_service.SprintService.get_sprint_info"><code class="docutils literal notranslate"><span class="pre">SprintService.get_sprint_info()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-services.issue_service">IssueService</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#services.issue_service.IssueService"><code class="docutils literal notranslate"><span class="pre">IssueService</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#services.issue_service.IssueService.__init__"><code class="docutils literal notranslate"><span class="pre">IssueService.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.issue_service.IssueService.get_done_bugs_for_sprint"><code class="docutils literal notranslate"><span class="pre">IssueService.get_done_bugs_for_sprint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.issue_service.IssueService.get_issue_info"><code class="docutils literal notranslate"><span class="pre">IssueService.get_issue_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.issue_service.IssueService.calculate_resolution_metrics"><code class="docutils literal notranslate"><span class="pre">IssueService.calculate_resolution_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.issue_service.IssueService.get_longest_resolution_issue"><code class="docutils literal notranslate"><span class="pre">IssueService.get_longest_resolution_issue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.issue_service.IssueService.classify_priority"><code class="docutils literal notranslate"><span class="pre">IssueService.classify_priority()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.issue_service.IssueService.calculate_priority_distribution"><code class="docutils literal notranslate"><span class="pre">IssueService.calculate_priority_distribution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#services.issue_service.IssueService.get_sprint_detailed_metrics"><code class="docutils literal notranslate"><span class="pre">IssueService.get_sprint_detailed_metrics()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Curly Memory</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Services API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/services.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="services-api">
+<h1>Services API<a class="headerlink" href="#services-api" title="Link to this heading"></a></h1>
+<p>The services module contains the core business logic for Jira analytics.</p>
+<section id="module-services.jira_analyzer">
+<span id="jiraanalyzer"></span><h2>JiraAnalyzer<a class="headerlink" href="#module-services.jira_analyzer" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="services.jira_analyzer.JiraAnalyzer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">services.jira_analyzer.</span></span><span class="sig-name descname"><span class="pre">JiraAnalyzer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/jira_analyzer.html#JiraAnalyzer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.jira_analyzer.JiraAnalyzer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main orchestrator class for Jira analysis.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="services.jira_analyzer.JiraAnalyzer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/jira_analyzer.html#JiraAnalyzer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.jira_analyzer.JiraAnalyzer.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.jira_analyzer.JiraAnalyzer.analyze_project">
+<span class="sig-name descname"><span class="pre">analyze_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scrum_board_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sprint_filter_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/jira_analyzer.html#JiraAnalyzer.analyze_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.jira_analyzer.JiraAnalyzer.analyze_project" title="Link to this definition"></a></dt>
+<dd><p>Analyze a single project and its scrum boards.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.jira_analyzer.JiraAnalyzer._analyze_board">
+<span class="sig-name descname"><span class="pre">_analyze_board</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sprint_filter_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/jira_analyzer.html#JiraAnalyzer._analyze_board"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.jira_analyzer.JiraAnalyzer._analyze_board" title="Link to this definition"></a></dt>
+<dd><p>Analyze a single board.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.jira_analyzer.JiraAnalyzer._analyze_sprint">
+<span class="sig-name descname"><span class="pre">_analyze_sprint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sprint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/jira_analyzer.html#JiraAnalyzer._analyze_sprint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.jira_analyzer.JiraAnalyzer._analyze_sprint" title="Link to this definition"></a></dt>
+<dd><p>Analyze a single sprint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.jira_analyzer.JiraAnalyzer.generate_report">
+<span class="sig-name descname"><span class="pre">generate_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/jira_analyzer.html#JiraAnalyzer.generate_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.jira_analyzer.JiraAnalyzer.generate_report" title="Link to this definition"></a></dt>
+<dd><p>Generate a formatted report from analysis results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-services.board_service">
+<span id="boardservice"></span><h2>BoardService<a class="headerlink" href="#module-services.board_service" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="services.board_service.BoardService">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">services.board_service.</span></span><span class="sig-name descname"><span class="pre">BoardService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/board_service.html#BoardService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.board_service.BoardService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Service class for handling board-related operations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="services.board_service.BoardService.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/board_service.html#BoardService.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.board_service.BoardService.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.board_service.BoardService.get_boards_for_project">
+<span class="sig-name descname"><span class="pre">get_boards_for_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/board_service.html#BoardService.get_boards_for_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.board_service.BoardService.get_boards_for_project" title="Link to this definition"></a></dt>
+<dd><p>Get all boards for a specific project.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.board_service.BoardService.filter_scrum_boards">
+<span class="sig-name descname"><span class="pre">filter_scrum_boards</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boards</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scrum_board_ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/board_service.html#BoardService.filter_scrum_boards"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.board_service.BoardService.filter_scrum_boards" title="Link to this definition"></a></dt>
+<dd><p>Filter boards to only include scrum boards.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.board_service.BoardService.get_board_info">
+<span class="sig-name descname"><span class="pre">get_board_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/board_service.html#BoardService.get_board_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.board_service.BoardService.get_board_info" title="Link to this definition"></a></dt>
+<dd><p>Get formatted board information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-services.sprint_service">
+<span id="sprintservice"></span><h2>SprintService<a class="headerlink" href="#module-services.sprint_service" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">services.sprint_service.</span></span><span class="sig-name descname"><span class="pre">SprintService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Service class for handling sprint-related operations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService.get_sprints_for_board">
+<span class="sig-name descname"><span class="pre">get_sprints_for_board</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService.get_sprints_for_board"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService.get_sprints_for_board" title="Link to this definition"></a></dt>
+<dd><p>Get sprints for a given board based on filter configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService._apply_sprint_filters">
+<span class="sig-name descname"><span class="pre">_apply_sprint_filters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sprints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService._apply_sprint_filters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService._apply_sprint_filters" title="Link to this definition"></a></dt>
+<dd><p>Apply various filters to sprints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService._sprint_matches_filters">
+<span class="sig-name descname"><span class="pre">_sprint_matches_filters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sprint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService._sprint_matches_filters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService._sprint_matches_filters" title="Link to this definition"></a></dt>
+<dd><p>Check if a sprint matches the filter criteria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService._sprint_in_date_range">
+<span class="sig-name descname"><span class="pre">_sprint_in_date_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sprint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService._sprint_in_date_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService._sprint_in_date_range" title="Link to this definition"></a></dt>
+<dd><p>Check if sprint falls within the specified date range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService._sprint_matches_state">
+<span class="sig-name descname"><span class="pre">_sprint_matches_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sprint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService._sprint_matches_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService._sprint_matches_state" title="Link to this definition"></a></dt>
+<dd><p>Check if sprint state matches allowed states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService.get_active_sprints">
+<span class="sig-name descname"><span class="pre">get_active_sprints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService.get_active_sprints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService.get_active_sprints" title="Link to this definition"></a></dt>
+<dd><p>Get active sprints for a given board (legacy method).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService.is_sprint_active">
+<span class="sig-name descname"><span class="pre">is_sprint_active</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sprint</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService.is_sprint_active"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService.is_sprint_active" title="Link to this definition"></a></dt>
+<dd><p>Check if a sprint is currently active.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.sprint_service.SprintService.get_sprint_info">
+<span class="sig-name descname"><span class="pre">get_sprint_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sprint</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/sprint_service.html#SprintService.get_sprint_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.sprint_service.SprintService.get_sprint_info" title="Link to this definition"></a></dt>
+<dd><p>Get formatted sprint information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-services.issue_service">
+<span id="issueservice"></span><h2>IssueService<a class="headerlink" href="#module-services.issue_service" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="services.issue_service.IssueService">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">services.issue_service.</span></span><span class="sig-name descname"><span class="pre">IssueService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Service class for handling issue-related operations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="services.issue_service.IssueService.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.issue_service.IssueService.get_done_bugs_for_sprint">
+<span class="sig-name descname"><span class="pre">get_done_bugs_for_sprint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sprint_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService.get_done_bugs_for_sprint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService.get_done_bugs_for_sprint" title="Link to this definition"></a></dt>
+<dd><p>Get all done bugs for a specific sprint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.issue_service.IssueService.get_issue_info">
+<span class="sig-name descname"><span class="pre">get_issue_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">issue</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService.get_issue_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService.get_issue_info" title="Link to this definition"></a></dt>
+<dd><p>Get formatted issue information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.issue_service.IssueService.calculate_resolution_metrics">
+<span class="sig-name descname"><span class="pre">calculate_resolution_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">issues</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService.calculate_resolution_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService.calculate_resolution_metrics" title="Link to this definition"></a></dt>
+<dd><p>Calculate resolution time metrics for a list of issues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.issue_service.IssueService.get_longest_resolution_issue">
+<span class="sig-name descname"><span class="pre">get_longest_resolution_issue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">issues</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService.get_longest_resolution_issue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService.get_longest_resolution_issue" title="Link to this definition"></a></dt>
+<dd><p>Get the issue with the longest resolution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.issue_service.IssueService.classify_priority">
+<span class="sig-name descname"><span class="pre">classify_priority</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">priority_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService.classify_priority"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService.classify_priority" title="Link to this definition"></a></dt>
+<dd><p>Classify priority into critical, major, or minor categories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.issue_service.IssueService.calculate_priority_distribution">
+<span class="sig-name descname"><span class="pre">calculate_priority_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">issues</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService.calculate_priority_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService.calculate_priority_distribution" title="Link to this definition"></a></dt>
+<dd><p>Calculate priority distribution for a list of issues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="services.issue_service.IssueService.get_sprint_detailed_metrics">
+<span class="sig-name descname"><span class="pre">get_sprint_detailed_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">issues</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/services/issue_service.html#IssueService.get_sprint_detailed_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#services.issue_service.IssueService.get_sprint_detailed_metrics" title="Link to this definition"></a></dt>
+<dd><p>Get comprehensive metrics for a sprint
+including resolution and priority data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Abubakar Siddique.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>services.sprint_service &mdash; Curly Memory 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Curly Memory
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/services.html">Services API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Curly Memory</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">services.sprint_service</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for services.sprint_service</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span>
+
+
+<div class="viewcode-block" id="SprintService">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SprintService</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Service class for handling sprint-related operations.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SprintService.__init__">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jira_client</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jira</span> <span class="o">=</span> <span class="n">jira_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SprintService.get_sprints_for_board">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService.get_sprints_for_board">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sprints_for_board</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">board_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">filter_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get sprints for a given board based on filter configuration.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get all sprints for the board using pagination</span>
+            <span class="n">all_sprints</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">start_at</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">max_results</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># Keep reasonable page size</span>
+
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">sprints_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jira</span><span class="o">.</span><span class="n">sprints</span><span class="p">(</span>
+                    <span class="n">board_id</span><span class="o">=</span><span class="n">board_id</span><span class="p">,</span> <span class="n">startAt</span><span class="o">=</span><span class="n">start_at</span><span class="p">,</span> <span class="n">maxResults</span><span class="o">=</span><span class="n">max_results</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">sprints_page</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="n">all_sprints</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">sprints_page</span><span class="p">)</span>
+                <span class="n">start_at</span> <span class="o">+=</span> <span class="n">max_results</span>
+
+                <span class="c1"># If we got fewer results than max_results, we&#39;ve reached the end</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sprints_page</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">max_results</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_sprints</span><span class="p">)</span><span class="si">}</span><span class="s2"> total sprints for board </span><span class="si">{</span><span class="n">board_id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">filter_config</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">all_sprints</span>
+
+            <span class="c1"># Apply filters</span>
+            <span class="n">filtered_sprints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_sprint_filters</span><span class="p">(</span><span class="n">all_sprints</span><span class="p">,</span> <span class="n">filter_config</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Filtered to </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filtered_sprints</span><span class="p">)</span><span class="si">}</span><span class="s2"> sprints for board </span><span class="si">{</span><span class="n">board_id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">filtered_sprints</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error fetching sprints for board </span><span class="si">{</span><span class="n">board_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="SprintService._apply_sprint_filters">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService._apply_sprint_filters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_sprint_filters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sprints</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">any</span><span class="p">],</span> <span class="n">filter_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply various filters to sprints.&quot;&quot;&quot;</span>
+        <span class="n">filtered_sprints</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">sprint</span> <span class="ow">in</span> <span class="n">sprints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sprint_matches_filters</span><span class="p">(</span><span class="n">sprint</span><span class="p">,</span> <span class="n">filter_config</span><span class="p">):</span>
+                <span class="n">filtered_sprints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sprint</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">filtered_sprints</span></div>
+
+
+<div class="viewcode-block" id="SprintService._sprint_matches_filters">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService._sprint_matches_filters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sprint_matches_filters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sprint</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span> <span class="n">filter_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if a sprint matches the filter criteria.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Check specific sprint IDs first</span>
+            <span class="k">if</span> <span class="n">filter_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;specific_sprint_ids&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">sprint</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">filter_config</span><span class="p">[</span><span class="s2">&quot;specific_sprint_ids&quot;</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="c1"># Check date range filter</span>
+            <span class="k">if</span> <span class="n">filter_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;date_range&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enabled&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="n">date_range</span> <span class="o">=</span> <span class="n">filter_config</span><span class="p">[</span><span class="s2">&quot;date_range&quot;</span><span class="p">]</span>
+                <span class="n">start_date</span> <span class="o">=</span> <span class="n">date_range</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;start_date&quot;</span><span class="p">)</span>
+                <span class="n">end_date</span> <span class="o">=</span> <span class="n">date_range</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;end_date&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sprint_in_date_range</span><span class="p">(</span>
+                    <span class="n">sprint</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">filter_config</span>
+                <span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="c1"># Check sprint state filter</span>
+            <span class="k">if</span> <span class="n">filter_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sprint_states&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sprint_matches_state</span><span class="p">(</span>
+                    <span class="n">sprint</span><span class="p">,</span> <span class="n">filter_config</span><span class="p">[</span><span class="s2">&quot;sprint_states&quot;</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error checking sprint filters: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="SprintService._sprint_in_date_range">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService._sprint_in_date_range">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sprint_in_date_range</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sprint</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span>
+        <span class="n">start_date</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+        <span class="n">end_date</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+        <span class="n">filter_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if sprint falls within the specified date range.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Handle sprints with no end date</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sprint</span><span class="p">,</span> <span class="s2">&quot;endDate&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">sprint</span><span class="o">.</span><span class="n">endDate</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">filter_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;include_no_end_date&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">sprint_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">sprint</span><span class="o">.</span><span class="n">startDate</span><span class="p">)</span>
+            <span class="n">sprint_end</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">sprint</span><span class="o">.</span><span class="n">endDate</span><span class="p">)</span>
+
+            <span class="c1"># Check if sprint overlaps with the date range</span>
+            <span class="c1"># Sprint is included if it overlaps with the date range</span>
+            <span class="c1"># (starts before the end date AND ends after the start date)</span>
+            <span class="n">overlaps</span> <span class="o">=</span> <span class="n">sprint_start</span> <span class="o">&lt;=</span> <span class="n">end_date</span> <span class="ow">and</span> <span class="n">sprint_end</span> <span class="o">&gt;=</span> <span class="n">start_date</span>
+            <span class="k">return</span> <span class="n">overlaps</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error checking sprint date range: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="SprintService._sprint_matches_state">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService._sprint_matches_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sprint_matches_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sprint</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span> <span class="n">allowed_states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if sprint state matches allowed states.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sprint_state</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sprint</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">sprint_state</span> <span class="ow">in</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">allowed_states</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error checking sprint state: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="SprintService.get_active_sprints">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService.get_active_sprints">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_active_sprints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get active sprints for a given board (legacy method).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sprints_for_board</span><span class="p">(</span><span class="n">board_id</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;sprint_states&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;active&quot;</span><span class="p">]})</span></div>
+
+
+<div class="viewcode-block" id="SprintService.is_sprint_active">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService.is_sprint_active">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_sprint_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sprint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if a sprint is currently active.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">sprint</span><span class="o">.</span><span class="n">startDate</span><span class="p">)</span>
+            <span class="n">end_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">sprint</span><span class="o">.</span><span class="n">endDate</span><span class="p">)</span>
+            <span class="n">current_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+
+            <span class="n">is_active</span> <span class="o">=</span> <span class="n">start_date</span> <span class="o">&lt;</span> <span class="n">current_time</span> <span class="o">&lt;</span> <span class="n">end_date</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;active&quot;</span> <span class="k">if</span> <span class="n">is_active</span> <span class="k">else</span> <span class="s2">&quot;not active&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sprint </span><span class="si">{</span><span class="n">sprint</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (ID: </span><span class="si">{</span><span class="n">sprint</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">) is </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">is_active</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error checking sprint status: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="SprintService.get_sprint_info">
+<a class="viewcode-back" href="../../api/services.html#services.sprint_service.SprintService.get_sprint_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sprint_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sprint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get formatted sprint information.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">sprint</span><span class="o">.</span><span class="n">startDate</span><span class="p">)</span>
+            <span class="n">end_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">sprint</span><span class="o">.</span><span class="n">endDate</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">sprint</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">sprint</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="n">start_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sprint</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;is_active&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_sprint_active</span><span class="p">(</span><span class="n">sprint</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting sprint info: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Abubakar Siddique.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

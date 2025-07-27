@@ -1,0 +1,315 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>services.jira_analyzer &mdash; Curly Memory 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Curly Memory
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/services.html">Services API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Curly Memory</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">services.jira_analyzer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for services.jira_analyzer</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.board_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoardService</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sprint_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">SprintService</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.issue_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">IssueService</span>
+
+
+<div class="viewcode-block" id="JiraAnalyzer">
+<a class="viewcode-back" href="../../api/services.html#services.jira_analyzer.JiraAnalyzer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JiraAnalyzer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main orchestrator class for Jira analysis.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="JiraAnalyzer.__init__">
+<a class="viewcode-back" href="../../api/services.html#services.jira_analyzer.JiraAnalyzer.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jira_client</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jira</span> <span class="o">=</span> <span class="n">jira_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="c1"># Initialize services</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">board_service</span> <span class="o">=</span> <span class="n">BoardService</span><span class="p">(</span><span class="n">jira_client</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sprint_service</span> <span class="o">=</span> <span class="n">SprintService</span><span class="p">(</span><span class="n">jira_client</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">issue_service</span> <span class="o">=</span> <span class="n">IssueService</span><span class="p">(</span><span class="n">jira_client</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="JiraAnalyzer.analyze_project">
+<a class="viewcode-back" href="../../api/services.html#services.jira_analyzer.JiraAnalyzer.analyze_project">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze_project</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">scrum_board_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">sprint_filter_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze a single project and its scrum boards.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting analysis for project: </span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
+            <span class="s2">&quot;boards&quot;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">&quot;total_issues&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;total_resolution_metrics&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;filter_config_used&quot;</span><span class="p">:</span> <span class="n">sprint_filter_config</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get boards for the project</span>
+            <span class="n">boards</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">board_service</span><span class="o">.</span><span class="n">get_boards_for_project</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+            <span class="n">scrum_boards</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">board_service</span><span class="o">.</span><span class="n">filter_scrum_boards</span><span class="p">(</span>
+                <span class="n">boards</span><span class="p">,</span> <span class="n">scrum_board_ids</span>
+            <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">board</span> <span class="ow">in</span> <span class="n">scrum_boards</span><span class="p">:</span>
+                <span class="n">board_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_board</span><span class="p">(</span><span class="n">board</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">sprint_filter_config</span><span class="p">)</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;boards&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">board_result</span><span class="p">)</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;total_issues&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">board_result</span><span class="p">[</span><span class="s2">&quot;total_issues&quot;</span><span class="p">]</span>
+
+            <span class="c1"># Calculate overall metrics</span>
+            <span class="n">all_issues</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">board_result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;boards&quot;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">sprint_result</span> <span class="ow">in</span> <span class="n">board_result</span><span class="p">[</span><span class="s2">&quot;sprints&quot;</span><span class="p">]:</span>
+                    <span class="n">all_issues</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">sprint_result</span><span class="p">[</span><span class="s2">&quot;issues&quot;</span><span class="p">])</span>
+
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;total_resolution_metrics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">issue_service</span><span class="o">.</span><span class="n">calculate_resolution_metrics</span><span class="p">(</span><span class="n">all_issues</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error analyzing project </span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="JiraAnalyzer._analyze_board">
+<a class="viewcode-back" href="../../api/services.html#services.jira_analyzer.JiraAnalyzer._analyze_board">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_board</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">board</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sprint_filter_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze a single board.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analyzing board: </span><span class="si">{</span><span class="n">board</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (ID: </span><span class="si">{</span><span class="n">board</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+        <span class="n">board_result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;board_info&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">board_service</span><span class="o">.</span><span class="n">get_board_info</span><span class="p">(</span><span class="n">board</span><span class="p">),</span>
+            <span class="s2">&quot;sprints&quot;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">&quot;total_issues&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get sprints based on filter configuration</span>
+            <span class="n">sprints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sprint_service</span><span class="o">.</span><span class="n">get_sprints_for_board</span><span class="p">(</span>
+                <span class="n">board</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">sprint_filter_config</span>
+            <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">sprint</span> <span class="ow">in</span> <span class="n">sprints</span><span class="p">:</span>
+                <span class="n">sprint_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_sprint</span><span class="p">(</span><span class="n">sprint</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
+                <span class="n">board_result</span><span class="p">[</span><span class="s2">&quot;sprints&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sprint_result</span><span class="p">)</span>
+                <span class="n">board_result</span><span class="p">[</span><span class="s2">&quot;total_issues&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sprint_result</span><span class="p">[</span><span class="s2">&quot;issue_count&quot;</span><span class="p">]</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error analyzing board </span><span class="si">{</span><span class="n">board</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">board_result</span></div>
+
+
+<div class="viewcode-block" id="JiraAnalyzer._analyze_sprint">
+<a class="viewcode-back" href="../../api/services.html#services.jira_analyzer.JiraAnalyzer._analyze_sprint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_sprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sprint</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze a single sprint.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analyzing sprint: </span><span class="si">{</span><span class="n">sprint</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (ID: </span><span class="si">{</span><span class="n">sprint</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+        <span class="n">sprint_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sprint_service</span><span class="o">.</span><span class="n">get_sprint_info</span><span class="p">(</span><span class="n">sprint</span><span class="p">)</span>
+
+        <span class="c1"># Get done bugs for this sprint</span>
+        <span class="n">issues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">issue_service</span><span class="o">.</span><span class="n">get_done_bugs_for_sprint</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">sprint</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+        <span class="c1"># Get detailed issue information for display</span>
+        <span class="n">issue_details</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+            <span class="n">issue_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">issue_service</span><span class="o">.</span><span class="n">get_issue_info</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span>
+            <span class="n">issue_details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">issue_info</span><span class="p">)</span>
+
+        <span class="c1"># Get comprehensive metrics using raw issue objects</span>
+        <span class="n">detailed_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">issue_service</span><span class="o">.</span><span class="n">get_sprint_detailed_metrics</span><span class="p">(</span><span class="n">issues</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;sprint_info&quot;</span><span class="p">:</span> <span class="n">sprint_info</span><span class="p">,</span>
+            <span class="s2">&quot;issues&quot;</span><span class="p">:</span> <span class="n">issue_details</span><span class="p">,</span>
+            <span class="s2">&quot;issue_count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">issues</span><span class="p">),</span>
+            <span class="s2">&quot;metrics&quot;</span><span class="p">:</span> <span class="n">detailed_metrics</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="JiraAnalyzer.generate_report">
+<a class="viewcode-back" href="../../api/services.html#services.jira_analyzer.JiraAnalyzer.generate_report">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a formatted report from analysis results.&quot;&quot;&quot;</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;=== Jira Analysis Report for Project: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> ===&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total Issues Analyzed: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;total_issues&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Add filter configuration info</span>
+        <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filter_config_used&quot;</span><span class="p">):</span>
+            <span class="n">filter_config</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;filter_config_used&quot;</span><span class="p">]</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Filter Configuration:&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">filter_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;date_range&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enabled&quot;</span><span class="p">):</span>
+                <span class="n">date_range</span> <span class="o">=</span> <span class="n">filter_config</span><span class="p">[</span><span class="s2">&quot;date_range&quot;</span><span class="p">]</span>
+                <span class="n">start_str</span> <span class="o">=</span> <span class="n">date_range</span><span class="p">[</span><span class="s2">&quot;start_date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">end_str</span> <span class="o">=</span> <span class="n">date_range</span><span class="p">[</span><span class="s2">&quot;end_date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Date Range: </span><span class="si">{</span><span class="n">start_str</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">end_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">filter_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sprint_states&quot;</span><span class="p">):</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;  Sprint States: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filter_config</span><span class="p">[</span><span class="s1">&#39;sprint_states&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">filter_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;specific_sprint_ids&quot;</span><span class="p">):</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;  Specific Sprint IDs: </span><span class="si">{</span><span class="n">filter_config</span><span class="p">[</span><span class="s1">&#39;specific_sprint_ids&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;total_resolution_metrics&quot;</span><span class="p">][</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">metrics</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;total_resolution_metrics&quot;</span><span class="p">]</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Average Resolution Time: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;avg_resolution_days&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> days&quot;</span>
+            <span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max Resolution Time: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;max_resolution_days&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> days&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Min Resolution Time: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;min_resolution_days&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> days&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== Board Details ===&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">board_result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;boards&quot;</span><span class="p">]:</span>
+            <span class="n">board_info</span> <span class="o">=</span> <span class="n">board_result</span><span class="p">[</span><span class="s2">&quot;board_info&quot;</span><span class="p">]</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Board: </span><span class="si">{</span><span class="n">board_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> (ID: </span><span class="si">{</span><span class="n">board_info</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total Issues: </span><span class="si">{</span><span class="n">board_result</span><span class="p">[</span><span class="s1">&#39;total_issues&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">sprint_result</span> <span class="ow">in</span> <span class="n">board_result</span><span class="p">[</span><span class="s2">&quot;sprints&quot;</span><span class="p">]:</span>
+                <span class="n">sprint_info</span> <span class="o">=</span> <span class="n">sprint_result</span><span class="p">[</span><span class="s2">&quot;sprint_info&quot;</span><span class="p">]</span>
+                <span class="n">metrics</span> <span class="o">=</span> <span class="n">sprint_result</span><span class="p">[</span><span class="s2">&quot;metrics&quot;</span><span class="p">]</span>
+
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Sprint: </span><span class="si">{</span><span class="n">sprint_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">sprint_info</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">) - &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sprint_result</span><span class="p">[</span><span class="s1">&#39;issue_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> issues&quot;</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Add priority distribution</span>
+                <span class="k">if</span> <span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;priority_distribution&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">priority_dist</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;priority_distribution&quot;</span><span class="p">]</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;    Priority Distribution:&quot;</span><span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Critical: </span><span class="si">{</span><span class="n">priority_dist</span><span class="p">[</span><span class="s1">&#39;critical&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Major: </span><span class="si">{</span><span class="n">priority_dist</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Minor: </span><span class="si">{</span><span class="n">priority_dist</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Add longest resolution time</span>
+                <span class="k">if</span> <span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;longest_resolution_issue&quot;</span><span class="p">):</span>
+                    <span class="n">longest_issue</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;longest_resolution_issue&quot;</span><span class="p">]</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;    Longest Resolution: </span><span class="si">{</span><span class="n">longest_issue</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">longest_issue</span><span class="p">[</span><span class="s1">&#39;resolution_days&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> days&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Summary: </span><span class="si">{</span><span class="n">longest_issue</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      Priority: </span><span class="si">{</span><span class="n">longest_issue</span><span class="p">[</span><span class="s1">&#39;priority&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Add resolution metrics if available</span>
+                <span class="k">if</span> <span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resolution_metrics&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">res_metrics</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;resolution_metrics&quot;</span><span class="p">]</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;    Resolution Metrics:&quot;</span><span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;      Average: </span><span class="si">{</span><span class="n">res_metrics</span><span class="p">[</span><span class="s1">&#39;avg_resolution_days&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> days&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;      Max: </span><span class="si">{</span><span class="n">res_metrics</span><span class="p">[</span><span class="s1">&#39;max_resolution_days&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> days&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;      Min: </span><span class="si">{</span><span class="n">res_metrics</span><span class="p">[</span><span class="s1">&#39;min_resolution_days&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> days&quot;</span>
+                    <span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Abubakar Siddique.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

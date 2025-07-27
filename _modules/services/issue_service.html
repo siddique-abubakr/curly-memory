@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>services.issue_service &mdash; Curly Memory 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Curly Memory
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/services.html">Services API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Curly Memory</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">services.issue_service</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for services.issue_service</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span>
+
+
+<div class="viewcode-block" id="IssueService">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IssueService</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Service class for handling issue-related operations.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="IssueService.__init__">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jira_client</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jira</span> <span class="o">=</span> <span class="n">jira_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IssueService.get_done_bugs_for_sprint">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService.get_done_bugs_for_sprint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_done_bugs_for_sprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sprint_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all done bugs for a specific sprint.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">jql</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;project = </span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2"> AND &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;sprint = </span><span class="si">{</span><span class="n">sprint_id</span><span class="si">}</span><span class="s2"> AND &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;type = Bug AND status = Done&quot;</span>
+            <span class="p">)</span>
+            <span class="n">issues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jira</span><span class="o">.</span><span class="n">search_issues</span><span class="p">(</span><span class="n">jql</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">issues</span><span class="p">)</span><span class="si">}</span><span class="s2"> done bugs for sprint </span><span class="si">{</span><span class="n">sprint_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">issues</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error fetching issues for sprint </span><span class="si">{</span><span class="n">sprint_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="IssueService.get_issue_info">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService.get_issue_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_issue_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issue</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get formatted issue information.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">created_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">created</span><span class="p">)</span>
+            <span class="n">updated_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">updated</span><span class="p">)</span>
+            <span class="n">resolution_time</span> <span class="o">=</span> <span class="n">updated_date</span> <span class="o">-</span> <span class="n">created_date</span>
+
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="o">.</span><span class="n">key</span><span class="p">,</span>
+                <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">summary</span><span class="p">,</span>
+                <span class="s2">&quot;priority&quot;</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">priority</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">priority</span> <span class="k">else</span> <span class="s2">&quot;None&quot;</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;created_date&quot;</span><span class="p">:</span> <span class="n">created_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;updated_date&quot;</span><span class="p">:</span> <span class="n">updated_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;resolution_time_days&quot;</span><span class="p">:</span> <span class="n">resolution_time</span><span class="o">.</span><span class="n">days</span><span class="p">,</span>
+                <span class="s2">&quot;resolution_time&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">resolution_time</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting issue info: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="IssueService.calculate_resolution_metrics">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService.calculate_resolution_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_resolution_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issues</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate resolution time metrics for a list of issues.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">issues</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;avg_resolution_days&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;max_resolution_days&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+        <span class="n">resolution_times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Validate issue object</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">issue</span><span class="p">,</span> <span class="s2">&quot;fields&quot;</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span> <span class="s2">&quot;created&quot;</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span> <span class="s2">&quot;updated&quot;</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Skipping issue without required fields: </span><span class="si">{</span>
+<span class="w">                            </span><span class="nb">getattr</span><span class="p">(</span><span class="n">issue</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;key&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+<span class="w">                        </span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="n">created_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">created</span><span class="p">)</span>
+                <span class="n">updated_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">updated</span><span class="p">)</span>
+                <span class="n">resolution_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">updated_date</span> <span class="o">-</span> <span class="n">created_date</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
+                <span class="n">resolution_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resolution_time</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Error calculating resolution time for issue </span><span class="si">{</span>
+<span class="w">                        </span><span class="nb">getattr</span><span class="p">(</span><span class="n">issue</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;key&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+<span class="w">                    </span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">resolution_times</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;avg_resolution_days&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;max_resolution_days&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">resolution_times</span><span class="p">),</span>
+            <span class="s2">&quot;avg_resolution_days&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">resolution_times</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">resolution_times</span><span class="p">),</span>
+            <span class="s2">&quot;max_resolution_days&quot;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">resolution_times</span><span class="p">),</span>
+            <span class="s2">&quot;min_resolution_days&quot;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">resolution_times</span><span class="p">),</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="IssueService.get_longest_resolution_issue">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService.get_longest_resolution_issue">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_longest_resolution_issue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issues</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the issue with the longest resolution time.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">issues</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="n">longest_resolution_issue</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">max_resolution_days</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Validate issue object</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">issue</span><span class="p">,</span> <span class="s2">&quot;fields&quot;</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span> <span class="s2">&quot;created&quot;</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span> <span class="s2">&quot;updated&quot;</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">continue</span>
+
+                <span class="n">created_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">created</span><span class="p">)</span>
+                <span class="n">updated_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">updated</span><span class="p">)</span>
+                <span class="n">resolution_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">updated_date</span> <span class="o">-</span> <span class="n">created_date</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
+
+                <span class="k">if</span> <span class="n">resolution_time</span> <span class="o">&gt;</span> <span class="n">max_resolution_days</span><span class="p">:</span>
+                    <span class="n">max_resolution_days</span> <span class="o">=</span> <span class="n">resolution_time</span>
+                    <span class="n">longest_resolution_issue</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="o">.</span><span class="n">key</span><span class="p">,</span>
+                        <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">summary</span><span class="p">,</span>
+                        <span class="s2">&quot;priority&quot;</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">priority</span><span class="o">.</span><span class="n">name</span>
+                            <span class="k">if</span> <span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">priority</span>
+                            <span class="k">else</span> <span class="s2">&quot;None&quot;</span>
+                        <span class="p">),</span>
+                        <span class="s2">&quot;resolution_days&quot;</span><span class="p">:</span> <span class="n">resolution_time</span><span class="p">,</span>
+                        <span class="s2">&quot;created_date&quot;</span><span class="p">:</span> <span class="n">created_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;updated_date&quot;</span><span class="p">:</span> <span class="n">updated_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">),</span>
+                    <span class="p">}</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">issue_key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">issue</span><span class="p">,</span> <span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Error calculating resolution time for issue </span><span class="si">{</span><span class="n">issue_key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">longest_resolution_issue</span></div>
+
+
+<div class="viewcode-block" id="IssueService.classify_priority">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService.classify_priority">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">classify_priority</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priority_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Classify priority into critical, major, or minor categories.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">priority_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;minor&quot;</span>
+
+        <span class="n">priority_lower</span> <span class="o">=</span> <span class="n">priority_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="c1"># Map priorities to categories</span>
+        <span class="k">if</span> <span class="n">priority_lower</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="s2">&quot;critical&quot;</span>
+        <span class="k">elif</span> <span class="n">priority_lower</span> <span class="o">==</span> <span class="s2">&quot;medium&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;major&quot;</span>
+        <span class="k">elif</span> <span class="n">priority_lower</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;lowest&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="s2">&quot;minor&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Default to minor for unknown priorities</span>
+            <span class="k">return</span> <span class="s2">&quot;minor&quot;</span></div>
+
+
+<div class="viewcode-block" id="IssueService.calculate_priority_distribution">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService.calculate_priority_distribution">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_priority_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issues</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate priority distribution for a list of issues.&quot;&quot;&quot;</span>
+        <span class="n">priority_counts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;critical&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;major&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;minor&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">issues</span><span class="p">)}</span>
+
+        <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">priority_name</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">priority</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">issue</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">priority</span> <span class="k">else</span> <span class="s2">&quot;None&quot;</span>
+                <span class="p">)</span>
+                <span class="n">priority_category</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify_priority</span><span class="p">(</span><span class="n">priority_name</span><span class="p">)</span>
+                <span class="n">priority_counts</span><span class="p">[</span><span class="n">priority_category</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error classifying priority: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">priority_counts</span><span class="p">[</span><span class="s2">&quot;minor&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># Default to minor</span>
+
+        <span class="k">return</span> <span class="n">priority_counts</span></div>
+
+
+<div class="viewcode-block" id="IssueService.get_sprint_detailed_metrics">
+<a class="viewcode-back" href="../../api/services.html#services.issue_service.IssueService.get_sprint_detailed_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sprint_detailed_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issues</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get comprehensive metrics for a sprint</span>
+<span class="sd">        including resolution and priority data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">issues</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;total_issues&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;resolution_metrics&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;longest_resolution_issue&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;priority_distribution&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;critical&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;major&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;minor&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+
+        <span class="c1"># Filter out invalid issues (those without fields attribute)</span>
+        <span class="n">valid_issues</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">issue</span><span class="p">,</span> <span class="s2">&quot;fields&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">issue</span><span class="p">,</span> <span class="s2">&quot;key&quot;</span><span class="p">):</span>
+                <span class="n">valid_issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping invalid issue object: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_issues</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No valid issues found for metrics calculation&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;total_issues&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;resolution_metrics&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;longest_resolution_issue&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;priority_distribution&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;critical&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;major&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;minor&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Processing </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_issues</span><span class="p">)</span><span class="si">}</span><span class="s2"> valid issues out of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">issues</span><span class="p">)</span><span class="si">}</span><span class="s2"> total&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;total_issues&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_issues</span><span class="p">),</span>
+            <span class="s2">&quot;resolution_metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_resolution_metrics</span><span class="p">(</span><span class="n">valid_issues</span><span class="p">),</span>
+            <span class="s2">&quot;longest_resolution_issue&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_longest_resolution_issue</span><span class="p">(</span><span class="n">valid_issues</span><span class="p">),</span>
+            <span class="s2">&quot;priority_distribution&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_priority_distribution</span><span class="p">(</span><span class="n">valid_issues</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Abubakar Siddique.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
