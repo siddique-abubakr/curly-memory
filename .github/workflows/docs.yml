@@ -39,9 +39,8 @@ jobs:
       
     - name: Build documentation
       run: |
-        cd docs
-        make html
-        
+        python scripts/generate_docs.py
+
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
