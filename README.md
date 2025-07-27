@@ -212,6 +212,59 @@ poetry run black src
 poetry run pytest
 ```
 
+### Documentation
+
+```sh
+# Setup documentation (first time)
+python setup_docs.py
+
+# Generate documentation
+python scripts/generate_docs.py
+
+# Or manually
+cd docs
+make html
+```
+
+The documentation will be available at `docs/_build/html/index.html`
+
+#### Updating Documentation
+
+When you make changes to your code or docstrings, regenerate the documentation:
+
+```sh
+# Quick update
+python scripts/generate_docs.py
+
+# Or manually
+cd docs
+make clean
+make html
+```
+
+**Note**: Documentation is auto-generated from your docstrings, so make sure to keep them up to date!
+
+### GitHub Pages Deployment
+
+The documentation is automatically deployed to GitHub Pages when you push to the main branch.
+
+**Live Documentation**: https://your-username.github.io/curly-memory/
+
+**Manual Deployment**:
+```bash
+# Build docs locally
+cd docs
+make html
+
+# Deploy to gh-pages branch
+git checkout gh-pages
+cp -r _build/html/* ./
+git add .
+git commit -m "Update documentation"
+git push origin gh-pages
+git checkout main
+```
+
 ### Adding New Features
 
 1. **New Service**: Create a service class in `src/services/`
@@ -230,6 +283,10 @@ poetry run pytest
 - **pytest**: Testing framework
 - **black**: Code formatting
 - **flake8**: Linting
+- **sphinx**: Documentation generation
+- **sphinx-rtd-theme**: Documentation theme
+- **sphinx-autodoc-typehints**: Type hints documentation
+- **myst-parser**: Markdown support
 
 ## Contributing
 
