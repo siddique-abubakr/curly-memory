@@ -42,8 +42,11 @@ class Logger:
             self.logger = logging.getLogger(name)
 
             # Configuration
-            self.logger.setLevel(logging.INFO)
-            self.logger.addHandler(logging.StreamHandler())
+            self.logger.setLevel(logging.DEBUG)
+            stream_handler = logging.StreamHandler()
+            stream_handler.setLevel(logging.INFO)
+            stream_handler.setFormatter(logging.Formatter(self.LOG_FORMAT))
+            self.logger.addHandler(stream_handler)
 
             # File handlers
             formatter = logging.Formatter(self.LOG_FORMAT)
