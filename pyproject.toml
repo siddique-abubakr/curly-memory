@@ -19,6 +19,7 @@ dependencies = [
 packages = [
     { include = "clients", from = "src" },
     { include = "core", from = "src" },
+    { include = "services", from = "src" },
 ]
 
 [project.optional-dependencies]
