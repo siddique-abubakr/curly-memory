@@ -8,7 +8,7 @@ class IssueService:
 
     def __init__(self, jira_client):
         self.jira = jira_client
-        self.logger = Logger.get_logger(name=__name__)
+        self.logger = Logger.get_logger()
 
     def get_done_bugs_for_sprint(self, project: str, sprint_id: int) -> List[Any]:
         """Get all done bugs for a specific sprint."""

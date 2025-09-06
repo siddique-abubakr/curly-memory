@@ -6,7 +6,7 @@ class BoardService:
 
     def __init__(self, jira_client):
         self.jira = jira_client
-        self.logger = Logger.get_logger(name=__name__)
+        self.logger = Logger.get_logger()
 
     def get_boards_for_project(self, project: str) -> list[any]:
         """Get all boards for a specific project."""

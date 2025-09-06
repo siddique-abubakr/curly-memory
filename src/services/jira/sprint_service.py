@@ -7,7 +7,7 @@ class SprintService:
 
     def __init__(self, jira_client):
         self.jira = jira_client
-        self.logger = Logger.get_logger(name=__name__)
+        self.logger = Logger.get_logger()
 
     def get_sprints_for_board(
         self, board_id: int, filter_config: dict[str, any] = None
@@ -37,6 +37,10 @@ class SprintService:
             self.logger.debug(
                 f"Found {len(all_sprints)} total sprints for board {board_id}"
             )
+
+            for sprint in all_sprints:
+                self.logger.debug(sprint)
+                self.logger.debug(sprint.raw())
 
             if not filter_config:
                 return all_sprints
@@ -160,6 +164,7 @@ class SprintService:
         try:
             start_date = datetime.fromisoformat(sprint.startDate)
             end_date = datetime.fromisoformat(sprint.endDate)
+            self.logger.debug(f"Sprint details: {sprint}")
 
             return {
                 "id": sprint.id,

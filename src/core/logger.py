@@ -22,7 +22,7 @@ class Logger:
 
     _instance = None
     LOGS_DIR = "logs"
-    LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    LOG_FORMAT = "%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s"
     LOG_LEVELS = [
         logging.DEBUG,
         logging.INFO,
