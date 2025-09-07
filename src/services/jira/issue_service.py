@@ -1,6 +1,5 @@
-from datetime import datetime
-from typing import List, Dict, Any
 from core.logger import Logger
+from services.jira.models import Issue
 
 
 class IssueService:
@@ -10,7 +9,7 @@ class IssueService:
         self.jira = jira_client
         self.logger = Logger.get_logger()
 
-    def get_done_bugs_for_sprint(self, project: str, sprint_id: int) -> List[Any]:
+    def get_done_bugs_for_sprint(self, project: str, sprint_id: int) -> list[Issue]:
         """Get all done bugs for a specific sprint."""
         try:
             jql = (
@@ -20,35 +19,21 @@ class IssueService:
             )
             issues = self.jira.search_issues(jql)
             self.logger.debug(f"Found {len(issues)} done bugs for sprint {sprint_id}")
+            issues = [Issue(**issue.raw) for issue in issues]
             return issues
         except Exception as e:
             self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
             return []
 
-    def get_issue_info(self, issue) -> Dict[str, Any]:
+    def get_issue_info(self, issue: Issue) -> dict[str, any]:
         """Get formatted issue information."""
         try:
-            created_date = datetime.fromisoformat(issue.fields.created)
-            updated_date = datetime.fromisoformat(issue.fields.updated)
-            resolution_time = updated_date - created_date
-
-            return {
-                "id": issue.id,
-                "key": issue.key,
-                "summary": issue.fields.summary,
-                "priority": (
-                    issue.fields.priority.name if issue.fields.priority else "None"
-                ),
-                "created_date": created_date.strftime("%Y-%m-%d %H:%M:%S"),
-                "updated_date": updated_date.strftime("%Y-%m-%d %H:%M:%S"),
-                "resolution_time_days": resolution_time.days,
-                "resolution_time": str(resolution_time),
-            }
+            return issue.model_dump()
         except Exception as e:
             self.logger.error(f"Error getting issue info: {e}")
             return {}
 
-    def calculate_resolution_metrics(self, issues: List[Any]) -> Dict[str, Any]:
+    def calculate_resolution_metrics(self, issues: list[Issue]) -> dict[str, any]:
         """Calculate resolution time metrics for a list of issues."""
         if not issues:
             return {"count": 0, "avg_resolution_days": 0, "max_resolution_days": 0}
@@ -69,10 +54,7 @@ class IssueService:
                     )
                     continue
 
-                created_date = datetime.fromisoformat(issue.fields.created)
-                updated_date = datetime.fromisoformat(issue.fields.updated)
-                resolution_time = (updated_date - created_date).days
-                resolution_times.append(resolution_time)
+                resolution_times.append(issue.resolution_time_days)
             except Exception as e:
                 self.logger.error(
                     f"Error calculating resolution time for issue {
@@ -90,7 +72,7 @@ class IssueService:
             "min_resolution_days": min(resolution_times),
         }
 
-    def get_longest_resolution_issue(self, issues: List[Any]) -> Dict[str, Any]:
+    def get_longest_resolution_issue(self, issues: list[Issue]) -> dict[str, any]:
         """Get the issue with the longest resolution time."""
         if not issues:
             return {}
@@ -108,12 +90,8 @@ class IssueService:
                 ):
                     continue
 
-                created_date = datetime.fromisoformat(issue.fields.created)
-                updated_date = datetime.fromisoformat(issue.fields.updated)
-                resolution_time = (updated_date - created_date).days
-
-                if resolution_time > max_resolution_days:
-                    max_resolution_days = resolution_time
+                if issue.resolution_time_days > max_resolution_days:
+                    max_resolution_days = issue.resolution_time_days
                     longest_resolution_issue = {
                         "key": issue.key,
                         "summary": issue.fields.summary,
@@ -122,9 +100,9 @@ class IssueService:
                             if issue.fields.priority
                             else "None"
                         ),
-                        "resolution_days": resolution_time,
-                        "created_date": created_date.strftime("%Y-%m-%d"),
-                        "updated_date": updated_date.strftime("%Y-%m-%d"),
+                        "resolution_days": issue.resolution_time_days,
+                        "created_date": issue.fields.created,
+                        "updated_date": issue.fields.updated,
                     }
             except Exception as e:
                 issue_key = getattr(issue, "key", "Unknown")
@@ -152,7 +130,7 @@ class IssueService:
             # Default to minor for unknown priorities
             return "minor"
 
-    def calculate_priority_distribution(self, issues: List[Any]) -> Dict[str, Any]:
+    def calculate_priority_distribution(self, issues: list[Issue]) -> dict[str, any]:
         """Calculate priority distribution for a list of issues."""
         priority_counts = {"critical": 0, "major": 0, "minor": 0, "total": len(issues)}
 
@@ -169,7 +147,7 @@ class IssueService:
 
         return priority_counts
 
-    def get_sprint_detailed_metrics(self, issues: List[Any]) -> Dict[str, Any]:
+    def get_sprint_detailed_metrics(self, issues: list[Issue]) -> dict[str, any]:
         """Get comprehensive metrics for a sprint
         including resolution and priority data.
         """
