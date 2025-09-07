@@ -44,16 +44,37 @@ curly-memory/
 │   │   ├── __init__.py
 │   │   ├── constants.py            # Configuration constants
 │   │   ├── enums.py               # Project and board enums
-│   │   └── logger.py              # Centralized logging
+│   │   ├── logger.py              # Centralized logging
+│   │   └── utils.py               # Utility functions
 │   ├── services/
 │   │   ├── __init__.py
-│   │   ├── board_service.py       # Board management
-│   │   ├── sprint_service.py      # Sprint filtering and analysis
-│   │   ├── issue_service.py       # Issue metrics and classification
+│   │   ├── jira/
+│   │   │   ├── __init__.py
+│   │   │   ├── board_service.py   # Board management
+│   │   │   ├── sprint_service.py  # Sprint filtering and analysis
+│   │   │   ├── issue_service.py   # Issue metrics and classification
+│   │   │   └── models/            # Pydantic data models
+│   │   │       ├── __init__.py
+│   │   │       ├── avatar.py      # Avatar-related models
+│   │   │       ├── board.py       # Board data model
+│   │   │       ├── content.py     # Attachments, comments, worklog
+│   │   │       ├── hierarchy.py   # Parent/subtask relationships
+│   │   │       ├── issue.py       # Main issue model
+│   │   │       ├── metadata.py    # Priority, IssueType, Resolution
+│   │   │       ├── project.py     # Project data model
+│   │   │       ├── restrictions.py # Issue restrictions
+│   │   │       ├── sprint.py      # Sprint data model
+│   │   │       ├── status.py      # Status and status categories
+│   │   │       ├── tracking.py    # Watches, votes, progress
+│   │   │       └── user.py        # User data model
 │   │   └── jira_analyzer.py       # Main orchestrator
 │   ├── tests/
 │   │   └── __init__.py
 │   └── main.py                    # Application entry point
+├── docs/                          # Sphinx documentation
+│   ├── conf.py                    # Sphinx configuration
+│   ├── index.rst                  # Documentation index
+│   └── api/                       # Auto-generated API docs
 ├── logs/                          # Application logs
 ├── .env.dist                      # Environment template
 ├── pyproject.toml                 # Poetry configuration
@@ -65,8 +86,14 @@ curly-memory/
 ### 1. Install Dependencies
 
 ```sh
+# Install all dependencies (including dev dependencies)
 poetry install
+
+# Install only production dependencies
+poetry install --only main
 ```
+
+The project is configured to install packages (`core`, `services`, `clients`) from the `src/` directory.
 
 ### 2. Configure Environment
 
@@ -115,13 +142,33 @@ poetry run python src/main.py
 ### Basic Analysis
 
 ```python
-from services import JiraAnalyzer
+from services.jira_analyzer import JiraAnalyzer
 from clients.jira_client import jira
 
 analyzer = JiraAnalyzer(jira)
 results = analyzer.analyze_project("PROJECT_KEY", [BOARD_ID])
 report = analyzer.generate_report(results)
 print(report)
+```
+
+### Working with Pydantic Models
+
+The project uses Pydantic v2 for data validation and serialization:
+
+```python
+from services.jira.models import Issue, Board, Sprint, Project
+
+# Models provide type safety and validation
+issue = Issue(**raw_jira_data)
+print(f"Issue: {issue.key}")
+print(f"Resolution time: {issue.resolution_time_days} days")
+
+# Export to dictionary with computed fields
+issue_data = issue.model_dump()
+
+# Access nested data
+project_name = issue.fields.project.name
+assignee = issue.fields.assignee.display_name if issue.fields.assignee else "Unassigned"
 ```
 
 ### Custom Sprint Filtering
@@ -190,12 +237,21 @@ Total Issues: 24
 
 ### Logging
 
-Configure log levels and output in `src/core/logger.py`:
+The project uses a centralized logging system with enhanced debugging capabilities:
 
 ```python
-LOG_LEVEL = "INFO"
-LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# Log format includes filename and line numbers for better debugging
+LOG_FORMAT = "%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s"
 ```
+
+Logs are automatically separated by level:
+- `logs/debug.log` - Debug messages
+- `logs/info.log` - Information messages  
+- `logs/warning.log` - Warning messages
+- `logs/error.log` - Error messages
+- `logs/critical.log` - Critical errors
+
+Console output shows INFO level and above.
 
 ## Development
 
@@ -208,8 +264,14 @@ poetry run flake8 src
 # Formatting
 poetry run black src
 
-# Testing
+# Testing  
 poetry run pytest
+
+# Type checking (if using mypy)
+poetry run mypy src
+
+# Run all quality checks
+poetry run flake8 src && poetry run black --check src && poetry run pytest
 ```
 
 ### Documentation

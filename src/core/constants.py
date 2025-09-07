@@ -7,14 +7,18 @@ KANBAN_BOARDS = [Boards.LTK_BOARD.value]
 
 # Sprint filtering configurations
 SPRINT_FILTER_CONFIG = {
-    # Date range filtering (since April 2024)
+    # Date range filtering (since April 2025)
     "date_range": {
-        "start_date": datetime(2025, 4, 1, tzinfo=timezone.utc),  # April 1, 2025
+        "start_date": datetime(2025, 3, 1, tzinfo=timezone.utc),  # March 1, 2025
         "end_date": datetime.now(timezone.utc),  # Current date
         "enabled": True,
     },
     # Sprint state filtering
-    "sprint_states": ["active", "closed", "future"],  # All states
+    "sprint_states": [
+        "active",
+        "closed",
+        # "future"
+    ],  # All states
     # Specific sprint IDs (optional - leave empty to use date range)
     "specific_sprint_ids": [],
     # Whether to include sprints with no end date
