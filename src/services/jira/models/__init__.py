@@ -12,11 +12,27 @@ from .user import User
 from .avatar import AvatarUrls
 
 __all__ = [
-    "Board", "Issue", "Project", "Sprint",
-    "Priority", "IssueType", "Resolution",
-    "Attachment", "Comment", "Comments", "Worklog",
-    "Watches", "Votes", "Progress",
+    "Board",
+    "Issue",
+    "Project",
+    "Sprint",
+    "Priority",
+    "IssueType",
+    "Resolution",
+    "Attachment",
+    "Comment",
+    "Comments",
+    "Worklog",
+    "Watches",
+    "Votes",
+    "Progress",
     "IssueRestriction",
-    "Subtask", "SubtaskFields", "Parent", "ParentFields",
-    "Status", "StatusCategory", "User", "AvatarUrls"
+    "Subtask",
+    "SubtaskFields",
+    "Parent",
+    "ParentFields",
+    "Status",
+    "StatusCategory",
+    "User",
+    "AvatarUrls",
 ]
