@@ -8,13 +8,10 @@ Advanced Jira analytics and performance metrics automation for Arbisoft.
    :caption: Contents:
 
    installation
-   quickstart
    api/services
+   api/models
    api/clients
    api/core
-   configuration
-   examples
-   contributing
 
 Indices and tables
 ==================
@@ -29,7 +26,7 @@ Overview
 Curly Memory is a comprehensive Jira analytics tool that provides detailed insights into sprint performance, bug resolution metrics, and team productivity. Built with a modular architecture, it offers configurable sprint filtering, priority analysis, and resolution time tracking.
 
 Key Features
------------
+------------
 
 * **Sprint Performance Analysis**: Track sprint completion rates and issue distribution
 * **Bug Resolution Metrics**: Calculate average, min, max resolution times per sprint
@@ -39,12 +36,13 @@ Key Features
 * **Comprehensive Reporting**: Detailed reports with priority distribution and resolution metrics
 
 Quick Start
-----------
+-----------
 
 .. code-block:: python
 
-   from services import JiraAnalyzer
+   from services.jira_analyzer import JiraAnalyzer
    from clients.jira_client import jira
+   from services.jira.models import Issue, Board
 
    # Initialize analyzer
    analyzer = JiraAnalyzer(jira)
@@ -54,4 +52,9 @@ Quick Start
    
    # Generate report
    report = analyzer.generate_report(results)
-   print(report) 
+   print(report)
+   
+   # Work with Pydantic models
+   for issue_data in results['issues']:
+       issue = Issue(**issue_data)
+       print(f"Issue {issue.key}: {issue.resolution_time_days} days") 

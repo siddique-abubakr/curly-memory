@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
+
 from core.logger import Logger
+from .models import Sprint
 
 
 class SprintService:
@@ -7,11 +9,11 @@ class SprintService:
 
     def __init__(self, jira_client):
         self.jira = jira_client
-        self.logger = Logger.get_logger(name=__name__)
+        self.logger = Logger.get_logger()
 
     def get_sprints_for_board(
         self, board_id: int, filter_config: dict[str, any] = None
-    ) -> list[any]:
+    ) -> list[Sprint]:
         """Get sprints for a given board based on filter configuration."""
         try:
             # Get all sprints for the board using pagination
@@ -38,6 +40,8 @@ class SprintService:
                 f"Found {len(all_sprints)} total sprints for board {board_id}"
             )
 
+            all_sprints = [Sprint(**sprint.raw) for sprint in all_sprints]
+
             if not filter_config:
                 return all_sprints
 
@@ -54,8 +58,8 @@ class SprintService:
             return []
 
     def _apply_sprint_filters(
-        self, sprints: list[any], filter_config: dict[str, any]
-    ) -> list[any]:
+        self, sprints: list[Sprint], filter_config: dict[str, any]
+    ) -> list[Sprint]:
         """Apply various filters to sprints."""
         filtered_sprints = []
 
@@ -66,7 +70,7 @@ class SprintService:
         return filtered_sprints
 
     def _sprint_matches_filters(
-        self, sprint: any, filter_config: dict[str, any]
+        self, sprint: Sprint, filter_config: dict[str, any]
     ) -> bool:
         """Check if a sprint matches the filter criteria."""
         try:
@@ -103,7 +107,7 @@ class SprintService:
 
     def _sprint_in_date_range(
         self,
-        sprint: any,
+        sprint: Sprint,
         start_date: datetime,
         end_date: datetime,
         filter_config: dict[str, any],
@@ -127,7 +131,7 @@ class SprintService:
             self.logger.error(f"Error checking sprint date range: {e}")
             return False
 
-    def _sprint_matches_state(self, sprint: any, allowed_states: list[str]) -> bool:
+    def _sprint_matches_state(self, sprint: Sprint, allowed_states: list[str]) -> bool:
         """Check if sprint state matches allowed states."""
         try:
             sprint_state = getattr(sprint, "state", "unknown").lower()
@@ -140,7 +144,7 @@ class SprintService:
         """Get active sprints for a given board (legacy method)."""
         return self.get_sprints_for_board(board_id, {"sprint_states": ["active"]})
 
-    def is_sprint_active(self, sprint) -> bool:
+    def is_sprint_active(self, sprint: Sprint) -> bool:
         """Check if a sprint is currently active."""
         try:
             start_date = datetime.fromisoformat(sprint.startDate)
@@ -155,20 +159,12 @@ class SprintService:
             self.logger.error(f"Error checking sprint status: {e}")
             return False
 
-    def get_sprint_info(self, sprint) -> dict[str, any]:
+    def get_sprint_info(self, sprint: Sprint) -> dict[str, any]:
         """Get formatted sprint information."""
         try:
-            start_date = datetime.fromisoformat(sprint.startDate)
-            end_date = datetime.fromisoformat(sprint.endDate)
+            self.logger.debug(f"Sprint details: {sprint}")
 
-            return {
-                "id": sprint.id,
-                "name": sprint.name,
-                "start_date": start_date.strftime("%Y-%m-%d"),
-                "end_date": end_date.strftime("%Y-%m-%d"),
-                "state": getattr(sprint, "state", "unknown"),
-                "is_active": self.is_sprint_active(sprint),
-            }
+            return sprint.model_dump()
         except Exception as e:
             self.logger.error(f"Error getting sprint info: {e}")
             return {}

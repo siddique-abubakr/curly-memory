@@ -1,36 +1,47 @@
-Services API
-============
+services package
+================
 
-The services module contains the core business logic for Jira analytics.
+.. automodule:: services
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-JiraAnalyzer
-------------
+services.jira\_analyzer module
+------------------------------
 
 .. automodule:: services.jira_analyzer
    :members:
    :undoc-members:
    :show-inheritance:
 
-BoardService
-------------
+services.jira package
+=====================
 
-.. automodule:: services.board_service
+.. automodule:: services.jira
    :members:
    :undoc-members:
    :show-inheritance:
 
-SprintService
--------------
+services.jira.board\_service module
+-----------------------------------
 
-.. automodule:: services.sprint_service
+.. automodule:: services.jira.board_service
    :members:
    :undoc-members:
    :show-inheritance:
 
-IssueService
-------------
+services.jira.issue\_service module
+-----------------------------------
 
-.. automodule:: services.issue_service
+.. automodule:: services.jira.issue_service
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+services.jira.sprint\_service module
+------------------------------------
+
+.. automodule:: services.jira.sprint_service
    :members:
    :undoc-members:
    :show-inheritance: 

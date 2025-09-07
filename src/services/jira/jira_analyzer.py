@@ -9,7 +9,7 @@ class JiraAnalyzer:
 
     def __init__(self, jira_client):
         self.jira = jira_client
-        self.logger = Logger.get_logger(name=__name__)
+        self.logger = Logger.get_logger()
 
         # Initialize services
         self.board_service = BoardService(jira_client)
@@ -116,7 +116,9 @@ class JiraAnalyzer:
     def generate_report(self, results: dict[str, any]) -> str:
         """Generate a formatted report from analysis results."""
         report = []
-        report.append(f"=== Jira Analysis Report for Project: {results['project']} ===")
+        report.append(
+            f"\n=== Jira Analysis Report for Project" f": {results['project']} ==="
+        )
         report.append(f"Total Issues Analyzed: {results['total_issues']}")
 
         # Add filter configuration info
@@ -145,6 +147,10 @@ class JiraAnalyzer:
             report.append(f"Max Resolution Time: {metrics['max_resolution_days']} days")
             report.append(f"Min Resolution Time: {metrics['min_resolution_days']} days")
 
+        if not results.get("boards"):
+            report.append(f"\nNo Scrum boards found for project {results['project']}")
+            return "\n".join(report)
+
         report.append("\n=== Board Details ===")
         for board_result in results["boards"]:
             board_info = board_result["board_info"]
@@ -159,6 +165,11 @@ class JiraAnalyzer:
                     f"\n  Sprint: {sprint_info['name']} ({sprint_info['state']}) - "
                     f"{sprint_result['issue_count']} issues"
                 )
+
+                if not sprint_result.get("issue_count"):
+                    report.append(
+                        f"    No issues found for sprint {sprint_info['name']}\n"
+                    )
 
                 # Add priority distribution
                 if metrics.get("priority_distribution", {}).get("total", 0) > 0:
