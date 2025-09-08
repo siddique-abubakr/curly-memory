@@ -30,11 +30,11 @@ class ChangelogItem(BaseModel):
 
     field: str
     fieldtype: str
-    field_id: str
-    from_id: str = Field(alias="from")
-    from_string: str
-    to_id: str = Field(alias="to")
-    to_string: str
+    field_id: str | None = Field(alias="fieldId", default=None)
+    from_id: str | None = Field(alias="from", default=None)
+    from_string: str | None = Field(alias="fromString", default=None)
+    to_id: str | None = Field(alias="to", default=None)
+    to_string: str | None = Field(alias="toString", default=None)
 
 
 class Changelog(BaseModel):

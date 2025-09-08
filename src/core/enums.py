@@ -30,3 +30,8 @@ class Status(Enum):
     BLOCKED = "10012"
     QA_REVIEW = "10020"
     DONE = "10013"
+
+
+class CustomField(Enum):
+    SPRINT = "customfield_10020"
+    LABELS = "customfield_10043"

@@ -1,5 +1,10 @@
+from datetime import timedelta
+from dateutil.parser import isoparse
+from collections import defaultdict
+
 from core.logger import Logger
 from services.jira.models import Issue
+from services.jira.models.tracking import Changelog, ChangelogItem
 
 
 class IssueService:
@@ -20,10 +25,6 @@ class IssueService:
             issues = self.jira.search_issues(jql)
             self.logger.debug(f"Found {len(issues)} done bugs for sprint {sprint_id}")
             issues = [Issue(**issue.raw) for issue in issues]
-            for issue in issues:
-                changelogs = self.jira.changelogs(issue.key)
-                for changelog in changelogs:
-                    self.logger.debug(changelog.raw)
             return issues
         except Exception as e:
             self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
@@ -32,7 +33,7 @@ class IssueService:
     def get_issues_for_sprint(self, project: str, sprint_id: int) -> list[Issue]:
         """Get all done bugs for a specific sprint."""
         try:
-            jql = f"project = {project} AND " f"sprint = {sprint_id}"
+            jql = f"project = {project} AND sprint = {sprint_id}"
             issues = self.jira.search_issues(jql)
             self.logger.debug(f"Found {len(issues)} issues for sprint {sprint_id}")
             issues = [Issue(**issue.raw) for issue in issues]
@@ -40,6 +41,102 @@ class IssueService:
         except Exception as e:
             self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
             return []
+
+    def get_issue_changelogs(self, issue_key: str) -> list[Changelog]:
+        """Get issue changelog/history"""
+        try:
+            changelogs = self.jira.changelogs(issue_key)
+            changelogs = [Changelog(**changelog.raw) for changelog in changelogs]
+            return changelogs
+        except Exception as e:
+            self.logger.error(f"Error fetching changelogs for issue {issue_key}\n {e}")
+            return []
+
+    def filter_status_changelogs(self, changelogs: list[Changelog]) -> list[Changelog]:
+        """Filter changelogs for field type status"""
+        return [
+            changelog
+            for changelog in changelogs
+            if any(item.field_id == "status" for item in changelog.items)
+        ]
+
+    def group_changelogs_by_from_status(
+        self, changelogs: list[Changelog]
+    ) -> dict[str, list[Changelog]]:
+        """Group changelogs based on the status the ticket was in before change"""
+        groups = defaultdict(list)
+        try:
+            for cl in changelogs:
+                status_item = next(
+                    (it for it in cl.items if it.field_id == "status"),
+                    None,
+                )
+                if not status_item:
+                    continue
+                from_status = status_item.from_id or status_item.from_string
+                if from_status is None:
+                    continue
+                groups[from_status].append(cl)
+        except Exception as e:
+            self.logger.error(f"Error while grouping changelogs by status {e}")
+        return dict(groups)
+
+    def calculate_time_per_status(
+        self, status_changelogs: list[Changelog]
+    ) -> dict[str, timedelta]:
+        """Calculate the time in status"""
+        status_deltas: dict[str, timedelta] = defaultdict(timedelta)
+        try:
+            sorted_changelogs = sorted(
+                status_changelogs, key=lambda c: isoparse(c.created)
+            )
+            for c in range(len(sorted_changelogs) - 2):
+                status_item: ChangelogItem = next(
+                    (
+                        it
+                        for it in sorted_changelogs[c].items
+                        if it.field_id == "status"
+                    ),
+                    None,
+                )
+                from_status: str = status_item.from_id or status_item.from_string
+
+                status_deltas[from_status] += isoparse(
+                    sorted_changelogs[c + 1].created
+                ) - isoparse(sorted_changelogs[c].created)
+        except Exception as e:
+            self.logger.error(f"Error while calculating time in status for issue {e}")
+        return status_deltas
+
+    def get_time_per_status(self, issues: list[Issue]) -> dict[str, timedelta]:
+        """Returns average time in status for the tickets of a sprint"""
+        all_status_times = defaultdict(list)
+
+        for issue in issues:
+            try:
+                status_changelogs = self.filter_status_changelogs(
+                    self.get_issue_changelogs(issue.key)
+                )
+                issue_status_times = self.calculate_time_per_status(status_changelogs)
+
+                # Collect times for each status across all issues
+                for status, time_spent in issue_status_times.items():
+                    all_status_times[status].append(time_spent)
+
+            except Exception as e:
+                self.logger.error(
+                    f"Error processing issue {issue.key} for time per status: {e}"
+                )
+
+        # Calculate average time per status
+        avg_status_times = {}
+        for status, times in all_status_times.items():
+            if times:
+                # Calculate average by summing all timedeltas and dividing by count
+                total_time = sum(times, timedelta())
+                avg_status_times[status] = total_time / len(times)
+
+        return avg_status_times
 
     def get_issue_info(self, issue: Issue) -> dict[str, any]:
         """Get formatted issue information."""
