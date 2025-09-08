@@ -20,6 +20,22 @@ class IssueService:
             issues = self.jira.search_issues(jql)
             self.logger.debug(f"Found {len(issues)} done bugs for sprint {sprint_id}")
             issues = [Issue(**issue.raw) for issue in issues]
+            for issue in issues:
+                changelogs = self.jira.changelogs(issue.key)
+                for changelog in changelogs:
+                    self.logger.debug(changelog.raw)
+            return issues
+        except Exception as e:
+            self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
+            return []
+
+    def get_issues_for_sprint(self, project: str, sprint_id: int) -> list[Issue]:
+        """Get all done bugs for a specific sprint."""
+        try:
+            jql = f"project = {project} AND " f"sprint = {sprint_id}"
+            issues = self.jira.search_issues(jql)
+            self.logger.debug(f"Found {len(issues)} issues for sprint {sprint_id}")
+            issues = [Issue(**issue.raw) for issue in issues]
             return issues
         except Exception as e:
             self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
