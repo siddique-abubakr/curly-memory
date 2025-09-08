@@ -101,10 +101,9 @@ class IssueService:
                 )
                 from_status: str = status_item.from_id or status_item.from_string
 
-                status_deltas[from_status] += (
-                    isoparse(sorted_changelogs[c + 1].created)
-                    - isoparse(sorted_changelogs[c].created)
-                )
+                status_deltas[from_status] += isoparse(
+                    sorted_changelogs[c + 1].created
+                ) - isoparse(sorted_changelogs[c].created)
         except Exception as e:
             self.logger.error(f"Error while calculating time in status for issue {e}")
         return status_deltas
@@ -112,21 +111,23 @@ class IssueService:
     def get_time_per_status(self, issues: list[Issue]) -> dict[str, timedelta]:
         """Returns average time in status for the tickets of a sprint"""
         all_status_times = defaultdict(list)
-        
+
         for issue in issues:
             try:
                 status_changelogs = self.filter_status_changelogs(
                     self.get_issue_changelogs(issue.key)
                 )
                 issue_status_times = self.calculate_time_per_status(status_changelogs)
-                
+
                 # Collect times for each status across all issues
                 for status, time_spent in issue_status_times.items():
                     all_status_times[status].append(time_spent)
-                    
+
             except Exception as e:
-                self.logger.error(f"Error processing issue {issue.key} for time per status: {e}")
-        
+                self.logger.error(
+                    f"Error processing issue {issue.key} for time per status: {e}"
+                )
+
         # Calculate average time per status
         avg_status_times = {}
         for status, times in all_status_times.items():
@@ -134,7 +135,7 @@ class IssueService:
                 # Calculate average by summing all timedeltas and dividing by count
                 total_time = sum(times, timedelta())
                 avg_status_times[status] = total_time / len(times)
-            
+
         return avg_status_times
 
     def get_issue_info(self, issue: Issue) -> dict[str, any]:
