@@ -1,3 +1,4 @@
+from datetime import timedelta
 from core.logger import Logger
 from .board_service import BoardService
 from .sprint_service import SprintService
@@ -105,12 +106,14 @@ class JiraAnalyzer:
 
         # Get comprehensive metrics using raw issue objects
         detailed_metrics = self.issue_service.get_sprint_detailed_metrics(issues)
+        average_time_in_status = self.issue_service.get_time_per_status(issues)
 
         return {
             "sprint_info": sprint_info,
             "issues": issue_details,
             "issue_count": len(issues),
             "metrics": detailed_metrics,
+            "status_deltas": average_time_in_status,
         }
 
     def generate_report(self, results: dict[str, any]) -> str:
@@ -159,6 +162,7 @@ class JiraAnalyzer:
 
             for sprint_result in board_result["sprints"]:
                 sprint_info = sprint_result["sprint_info"]
+                status_deltas: dict[str, timedelta] = sprint_result["status_deltas"]
                 metrics = sprint_result["metrics"]
 
                 report.append(
@@ -202,5 +206,11 @@ class JiraAnalyzer:
                     report.append(
                         f"      Min: {res_metrics['min_resolution_days']} days"
                     )
+
+                # Add status timedeltas if available
+                if status_deltas:
+                    report.append("    Status Deltas:")
+                    for k, v in status_deltas.items():
+                        report.append(f"      {k}: {v.days} days")
 
         return "\n".join(report)

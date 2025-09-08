@@ -20,6 +20,7 @@ python-dotenv = ">=1.1.1,<2.0.0"
 sphinx = ">=8.2.3,<9.0.0"
 autodoc = ">=0.5.0,<0.6.0"
 pydantic = ">=2.11.7,<3.0.0"
+python-dateutil = "^2.9.0.post0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.0.0"
