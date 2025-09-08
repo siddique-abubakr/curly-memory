@@ -1,7 +1,7 @@
 import os
 
-from jira import JIRA
 from dotenv import load_dotenv
+from services.jira.extensions.jira_extended import JiraEx
 
 
 class JiraClient:
@@ -19,7 +19,7 @@ class JiraClient:
     def __init__(self, server=None, email=None, api_token=None):
         if not hasattr(self, "jira"):
             load_dotenv()
-            self.jira = JIRA(
+            self.jira = JiraEx(
                 server=server or os.getenv("JIRA_SERVER"),
                 basic_auth=(
                     email or os.getenv("JIRA_EMAIL"),
