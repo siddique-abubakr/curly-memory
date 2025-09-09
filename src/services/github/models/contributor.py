@@ -4,7 +4,6 @@ GitHub contributor and branch models for various endpoints.
 These models represent contributor and branch data returned by GitHub's REST API.
 """
 
-from typing import Optional
 from pydantic import BaseModel, Field, HttpUrl
 
 
@@ -15,7 +14,7 @@ class Contributor(BaseModel):
     id: int = Field(description="Unique user ID")
     node_id: str = Field(description="GraphQL node ID")
     avatar_url: HttpUrl = Field(description="User's avatar image URL")
-    gravatar_id: Optional[str] = Field(default=None, description="Gravatar ID")
+    gravatar_id: str | None = Field(default=None, description="Gravatar ID")
     url: HttpUrl = Field(description="API URL for user")
     html_url: HttpUrl = Field(description="GitHub profile URL")
     followers_url: HttpUrl = Field(description="API URL for followers")
@@ -36,7 +35,7 @@ class BranchProtection(BaseModel):
     """Branch protection settings"""
 
     enabled: bool = Field(description="Whether branch protection is enabled")
-    required_status_checks: Optional[dict] = Field(
+    required_status_checks: dict | None = Field(
         default=None, description="Required status checks"
     )
 
@@ -54,9 +53,9 @@ class Branch(BaseModel):
     name: str = Field(description="Branch name")
     commit: BranchCommit = Field(description="Latest commit on branch")
     protected: bool = Field(description="Whether branch is protected")
-    protection: Optional[BranchProtection] = Field(
+    protection: BranchProtection | None = Field(
         default=None, description="Branch protection settings"
     )
-    protection_url: Optional[HttpUrl] = Field(
+    protection_url: HttpUrl | None = Field(
         default=None, description="API URL for protection settings"
     )

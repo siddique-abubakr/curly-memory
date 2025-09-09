@@ -4,8 +4,8 @@ GitHub issue models for the /issues endpoints.
 These models represent issue data returned by GitHub's REST API.
 """
 
+from __future__ import annotations
 from datetime import datetime
-from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, HttpUrl
 from enum import Enum
 
@@ -35,7 +35,7 @@ class IssuePullRequest(BaseModel):
     html_url: HttpUrl = Field(description="GitHub URL for pull request")
     diff_url: HttpUrl = Field(description="Diff URL for pull request")
     patch_url: HttpUrl = Field(description="Patch URL for pull request")
-    merged_at: Optional[datetime] = Field(
+    merged_at: datetime | None = Field(
         default=None, description="Pull request merge date"
     )
 
@@ -68,49 +68,47 @@ class Issue(BaseModel):
     html_url: HttpUrl = Field(description="GitHub URL for issue")
     number: int = Field(description="Issue number")
     state: IssueState = Field(description="Issue state")
-    state_reason: Optional[IssueStateReason] = Field(
+    state_reason: IssueStateReason | None = Field(
         default=None, description="Reason for state change"
     )
     title: str = Field(description="Issue title")
-    body: Optional[str] = Field(default=None, description="Issue body/description")
+    body: str | None = Field(default=None, description="Issue body/description")
     user: GitHubUser = Field(description="User who created the issue")
-    labels: List[GitHubLabel] = Field(description="Labels attached to issue")
-    assignee: Optional[GitHubUser] = Field(default=None, description="Assigned user")
-    assignees: List[GitHubUser] = Field(description="All assigned users")
-    milestone: Optional[GitHubMilestone] = Field(
+    labels: list[GitHubLabel] = Field(description="Labels attached to issue")
+    assignee: GitHubUser | None = Field(default=None, description="Assigned user")
+    assignees: list[GitHubUser] = Field(description="All assigned users")
+    milestone: GitHubMilestone | None = Field(
         default=None, description="Associated milestone"
     )
     locked: bool = Field(description="Whether issue is locked")
-    active_lock_reason: Optional[str] = Field(
+    active_lock_reason: str | None = Field(
         default=None, description="Reason for locking if locked"
     )
     comments: int = Field(description="Number of comments on issue")
-    pull_request: Optional[IssuePullRequest] = Field(
+    pull_request: IssuePullRequest | None = Field(
         default=None, description="Pull request info (if issue is a PR)"
     )
-    closed_at: Optional[datetime] = Field(default=None, description="Issue close date")
+    closed_at: datetime | None = Field(default=None, description="Issue close date")
     created_at: datetime = Field(description="Issue creation date")
     updated_at: datetime = Field(description="Last issue update")
-    closed_by: Optional[GitHubUser] = Field(
+    closed_by: GitHubUser | None = Field(
         default=None, description="User who closed the issue"
     )
     author_association: str = Field(description="Author's association with repository")
-    body_html: Optional[str] = Field(
+    body_html: str | None = Field(
         default=None, description="Issue body rendered as HTML"
     )
-    body_text: Optional[str] = Field(
-        default=None, description="Issue body as plain text"
-    )
-    timeline_url: Optional[HttpUrl] = Field(
+    body_text: str | None = Field(default=None, description="Issue body as plain text")
+    timeline_url: HttpUrl | None = Field(
         default=None, description="API URL for issue timeline"
     )
-    repository: Optional[Repository] = Field(
+    repository: "Repository | None" = Field(
         default=None, description="Repository containing the issue"
     )
-    performed_via_github_app: Optional[Dict[str, Any]] = Field(
+    performed_via_github_app: dict[str, any] | None = Field(
         default=None, description="GitHub App that performed action"
     )
-    reactions: Optional[IssueReactions] = Field(
+    reactions: IssueReactions | None = Field(
         default=None, description="Issue reactions"
     )
 
@@ -128,15 +126,15 @@ class IssueComment(BaseModel):
     updated_at: datetime = Field(description="Last comment update")
     issue_url: HttpUrl = Field(description="API URL for associated issue")
     author_association: str = Field(description="Author's association with repository")
-    body_html: Optional[str] = Field(
+    body_html: str | None = Field(
         default=None, description="Comment body rendered as HTML"
     )
-    body_text: Optional[str] = Field(
+    body_text: str | None = Field(
         default=None, description="Comment body as plain text"
     )
-    reactions: Optional[IssueReactions] = Field(
+    reactions: IssueReactions | None = Field(
         default=None, description="Comment reactions"
     )
-    performed_via_github_app: Optional[Dict[str, Any]] = Field(
+    performed_via_github_app: dict[str, any] | None = Field(
         default=None, description="GitHub App that performed action"
     )

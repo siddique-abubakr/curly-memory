@@ -5,7 +5,6 @@ These models represent commit data returned by GitHub's REST API.
 """
 
 from datetime import datetime
-from typing import Optional, List
 from pydantic import BaseModel, Field, HttpUrl
 from enum import Enum
 
@@ -52,13 +51,11 @@ class CommitVerification(BaseModel):
 
     verified: bool = Field(description="Whether the signature is verified")
     reason: VerificationReason = Field(description="Verification status reason")
-    signature: Optional[str] = Field(
+    signature: str | None = Field(
         default=None, description="The signature that was extracted from the commit"
     )
-    payload: Optional[str] = Field(
-        default=None, description="The value that was signed"
-    )
-    verified_at: Optional[datetime] = Field(
+    payload: str | None = Field(default=None, description="The value that was signed")
+    verified_at: datetime | None = Field(
         default=None, description="When the signature was verified"
     )
 
@@ -82,7 +79,7 @@ class CommitParent(BaseModel):
 
     url: HttpUrl = Field(description="API URL for parent commit")
     sha: str = Field(description="Parent commit SHA")
-    html_url: Optional[HttpUrl] = Field(
+    html_url: HttpUrl | None = Field(
         default=None, description="GitHub URL for parent commit"
     )
 
@@ -107,12 +104,12 @@ class CommitFile(BaseModel):
     )
     raw_url: HttpUrl = Field(description="Raw file URL")
     blob_url: HttpUrl = Field(description="Blob URL")
-    patch: Optional[str] = Field(default=None, description="Patch/diff for the file")
-    sha: Optional[str] = Field(default=None, description="File SHA")
-    contents_url: Optional[HttpUrl] = Field(
+    patch: str | None = Field(default=None, description="Patch/diff for the file")
+    sha: str | None = Field(default=None, description="File SHA")
+    contents_url: HttpUrl | None = Field(
         default=None, description="API URL for file contents"
     )
-    previous_filename: Optional[str] = Field(
+    previous_filename: str | None = Field(
         default=None, description="Previous filename if renamed"
     )
 
@@ -126,19 +123,19 @@ class Commit(BaseModel):
     html_url: HttpUrl = Field(description="GitHub URL for commit")
     comments_url: HttpUrl = Field(description="API URL for commit comments")
     commit: GitCommit = Field(description="Git commit data")
-    author: Optional[GitHubUser] = Field(
+    author: GitHubUser | None = Field(
         default=None, description="GitHub user who authored the commit"
     )
-    committer: Optional[GitHubUser] = Field(
+    committer: GitHubUser | None = Field(
         default=None, description="GitHub user who committed"
     )
-    parents: List[CommitParent] = Field(description="Parent commits")
+    parents: list[CommitParent] = Field(description="Parent commits")
 
 
 class CommitDetails(Commit):
     """Extended commit model with additional details (single commit endpoint)"""
 
-    stats: Optional[CommitStats] = Field(default=None, description="Commit statistics")
-    files: Optional[List[CommitFile]] = Field(
+    stats: CommitStats | None = Field(default=None, description="Commit statistics")
+    files: list[CommitFile] | None = Field(
         default=None, description="Files changed in commit"
     )

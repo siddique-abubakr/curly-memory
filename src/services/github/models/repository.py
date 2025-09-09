@@ -4,8 +4,8 @@ GitHub repository models for the /repos endpoints.
 These models represent repository data returned by GitHub's REST API.
 """
 
+from __future__ import annotations
 from datetime import datetime
-from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field, HttpUrl
 from enum import Enum
 
@@ -38,11 +38,11 @@ class RepositoryPermissions(BaseModel):
     """Repository permissions for the authenticated user"""
 
     admin: bool = Field(description="Whether user has admin permissions")
-    maintain: Optional[bool] = Field(
+    maintain: bool | None = Field(
         default=None, description="Whether user has maintain permissions"
     )
     push: bool = Field(description="Whether user has push permissions")
-    triage: Optional[bool] = Field(
+    triage: bool | None = Field(
         default=None, description="Whether user has triage permissions"
     )
     pull: bool = Field(description="Whether user has pull permissions")
@@ -75,19 +75,19 @@ class DependencyReview(BaseModel):
 class SecurityAnalysis(BaseModel):
     """Repository security and analysis settings"""
 
-    advanced_security: Optional[AdvancedSecurity] = Field(
+    advanced_security: AdvancedSecurity | None = Field(
         default=None, description="Advanced security settings"
     )
-    secret_scanning: Optional[SecretScanning] = Field(
+    secret_scanning: SecretScanning | None = Field(
         default=None, description="Secret scanning settings"
     )
-    secret_scanning_push_protection: Optional[SecretScanningPushProtection] = Field(
+    secret_scanning_push_protection: SecretScanningPushProtection | None = Field(
         default=None, description="Secret scanning push protection settings"
     )
-    dependabot_security_updates: Optional[Dict[str, str]] = Field(
+    dependabot_security_updates: dict[str, str] | None = Field(
         default=None, description="Dependabot security updates settings"
     )
-    dependency_review: Optional[DependencyReview] = Field(
+    dependency_review: DependencyReview | None = Field(
         default=None, description="Dependency review settings"
     )
 
@@ -102,9 +102,7 @@ class Repository(BaseModel):
     owner: RepositoryOwner = Field(description="Repository owner")
     private: bool = Field(description="Whether repository is private")
     html_url: HttpUrl = Field(description="Repository URL on GitHub")
-    description: Optional[str] = Field(
-        default=None, description="Repository description"
-    )
+    description: str | None = Field(default=None, description="Repository description")
     fork: bool = Field(description="Whether repository is a fork")
     url: HttpUrl = Field(description="API URL for repository")
     archive_url: str = Field(description="Archive URL template")
@@ -145,13 +143,13 @@ class Repository(BaseModel):
     teams_url: HttpUrl = Field(description="Teams API URL")
     trees_url: str = Field(description="Trees URL template")
     clone_url: HttpUrl = Field(description="HTTPS clone URL")
-    mirror_url: Optional[HttpUrl] = Field(
+    mirror_url: HttpUrl | None = Field(
         default=None, description="Mirror URL if repository is a mirror"
     )
     hooks_url: HttpUrl = Field(description="Hooks API URL")
     svn_url: HttpUrl = Field(description="SVN URL")
-    homepage: Optional[str] = Field(default=None, description="Repository homepage URL")
-    language: Optional[str] = Field(
+    homepage: str | None = Field(default=None, description="Repository homepage URL")
+    language: str | None = Field(
         default=None, description="Primary programming language"
     )
     forks_count: int = Field(description="Number of forks")
@@ -162,96 +160,94 @@ class Repository(BaseModel):
     open_issues_count: int = Field(
         description="Number of open issues and pull requests"
     )
-    is_template: Optional[bool] = Field(
+    is_template: bool | None = Field(
         default=None, description="Whether repository is a template"
     )
-    topics: Optional[list[str]] = Field(
-        default=None, description="Repository topics/tags"
-    )
+    topics: list[str] | None = Field(default=None, description="Repository topics/tags")
     has_issues: bool = Field(description="Whether repository has issues enabled")
     has_projects: bool = Field(description="Whether repository has projects enabled")
     has_wiki: bool = Field(description="Whether repository has wiki enabled")
     has_pages: bool = Field(description="Whether repository has GitHub Pages enabled")
     has_downloads: bool = Field(description="Whether repository has downloads enabled")
-    has_discussions: Optional[bool] = Field(
+    has_discussions: bool | None = Field(
         default=None, description="Whether repository has discussions enabled"
     )
     archived: bool = Field(description="Whether repository is archived")
     disabled: bool = Field(description="Whether repository is disabled")
-    visibility: Optional[RepositoryVisibility] = Field(
+    visibility: RepositoryVisibility | None = Field(
         default=None, description="Repository visibility"
     )
-    pushed_at: Optional[datetime] = Field(default=None, description="Last push date")
+    pushed_at: datetime | None = Field(default=None, description="Last push date")
     created_at: datetime = Field(description="Repository creation date")
     updated_at: datetime = Field(description="Last repository update")
-    permissions: Optional[RepositoryPermissions] = Field(
+    permissions: RepositoryPermissions | None = Field(
         default=None, description="User permissions on repository"
     )
-    allow_rebase_merge: Optional[bool] = Field(
+    allow_rebase_merge: bool | None = Field(
         default=None, description="Whether rebase merging is allowed"
     )
-    template_repository: Optional["Repository"] = Field(
+    template_repository: "Repository | None" = Field(
         default=None, description="Template repository if created from template"
     )
-    temp_clone_token: Optional[str] = Field(
+    temp_clone_token: str | None = Field(
         default=None, description="Temporary clone token"
     )
-    allow_squash_merge: Optional[bool] = Field(
+    allow_squash_merge: bool | None = Field(
         default=None, description="Whether squash merging is allowed"
     )
-    allow_auto_merge: Optional[bool] = Field(
+    allow_auto_merge: bool | None = Field(
         default=None, description="Whether auto-merge is allowed"
     )
-    delete_branch_on_merge: Optional[bool] = Field(
+    delete_branch_on_merge: bool | None = Field(
         default=None, description="Whether to delete head branches after merge"
     )
-    allow_update_branch: Optional[bool] = Field(
+    allow_update_branch: bool | None = Field(
         default=None, description="Whether to allow updating branch with rebase"
     )
-    use_squash_pr_title_as_default: Optional[bool] = Field(
+    use_squash_pr_title_as_default: bool | None = Field(
         default=None,
         description="Whether to use PR title as default squash commit message",
     )
-    squash_merge_commit_title: Optional[str] = Field(
+    squash_merge_commit_title: str | None = Field(
         default=None, description="Default squash merge commit title"
     )
-    squash_merge_commit_message: Optional[str] = Field(
+    squash_merge_commit_message: str | None = Field(
         default=None, description="Default squash merge commit message"
     )
-    merge_commit_title: Optional[str] = Field(
+    merge_commit_title: str | None = Field(
         default=None, description="Default merge commit title"
     )
-    merge_commit_message: Optional[str] = Field(
+    merge_commit_message: str | None = Field(
         default=None, description="Default merge commit message"
     )
-    allow_merge_commit: Optional[bool] = Field(
+    allow_merge_commit: bool | None = Field(
         default=None, description="Whether merge commits are allowed"
     )
-    allow_forking: Optional[bool] = Field(
+    allow_forking: bool | None = Field(
         default=None, description="Whether forking is allowed"
     )
-    web_commit_signoff_required: Optional[bool] = Field(
+    web_commit_signoff_required: bool | None = Field(
         default=None, description="Whether web-based commits require signoff"
     )
-    subscribers_count: Optional[int] = Field(
+    subscribers_count: int | None = Field(
         default=None, description="Number of subscribers"
     )
-    network_count: Optional[int] = Field(
+    network_count: int | None = Field(
         default=None, description="Number of repositories in the network"
     )
-    license: Optional[Dict[str, Any]] = Field(
+    license: dict[str, any] | None = Field(
         default=None, description="Repository license information"
     )
-    organization: Optional[GitHubUser] = Field(
+    organization: GitHubUser | None = Field(
         default=None, description="Organization that owns the repository"
     )
-    parent: Optional["Repository"] = Field(
+    parent: "Repository | None" = Field(
         default=None, description="Parent repository if this is a fork"
     )
-    source: Optional["Repository"] = Field(
+    source: "Repository | None" = Field(
         default=None, description="Source repository if this is a fork"
     )
-    security_and_analysis: Optional[SecurityAnalysis] = Field(
+    security_and_analysis: SecurityAnalysis | None = Field(
         default=None, description="Security and analysis settings"
     )
 

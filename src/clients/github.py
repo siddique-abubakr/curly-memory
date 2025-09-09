@@ -1,7 +1,7 @@
+from __future__ import annotations
 from core import constants
 from core.logger import Logger
 import requests
-from typing import Union, List
 from .github_params import (
     CommitParams,
     PullRequestParams,
@@ -76,16 +76,14 @@ class GithubClient:
                 return None
         return None
 
-    def get_commits(
-        self, params: Union[CommitParams, dict, None] = None
-    ) -> List[Commit]:
+    def get_commits(self, params: CommitParams | dict | None = None) -> list[Commit]:
         """GET /repos/{owner}/{repo}/commits
 
         Args:
             params: CommitParams model or dict with query parameters
 
         Returns:
-            List of Commit objects with commit information
+            list of Commit objects with commit information
 
         Example:
             # Using parameter model (recommended)
@@ -113,15 +111,15 @@ class GithubClient:
         return []
 
     def get_pull_requests(
-        self, params: Union[PullRequestParams, dict, None] = None
-    ) -> List[PullRequest]:
+        self, params: PullRequestParams | dict | None = None
+    ) -> list[PullRequest]:
         """GET /repos/{owner}/{repo}/pulls
 
         Args:
             params: PullRequestParams model or dict with query parameters
 
         Returns:
-            List of PullRequest objects with pull request information
+            list of PullRequest objects with pull request information
 
         Example:
             # Using parameter model (recommended)
@@ -145,14 +143,14 @@ class GithubClient:
                 return []
         return []
 
-    def get_issues(self, params: Union[IssueParams, dict, None] = None) -> List[Issue]:
+    def get_issues(self, params: IssueParams | dict | None = None) -> list[Issue]:
         """GET /repos/{owner}/{repo}/issues
 
         Args:
             params: IssueParams model or dict with query parameters
 
         Returns:
-            List of Issue objects with issue information
+            list of Issue objects with issue information
 
         Example:
             # Using parameter model (recommended)
@@ -176,16 +174,14 @@ class GithubClient:
                 return []
         return []
 
-    def get_branches(
-        self, params: Union[BranchParams, dict, None] = None
-    ) -> List[Branch]:
+    def get_branches(self, params: BranchParams | dict | None = None) -> list[Branch]:
         """GET /repos/{owner}/{repo}/branches
 
         Args:
             params: BranchParams model or dict with query parameters
 
         Returns:
-            List of Branch objects with branch information
+            list of Branch objects with branch information
 
         Example:
             # Using parameter model (recommended)
@@ -206,15 +202,15 @@ class GithubClient:
         return []
 
     def get_contributors(
-        self, params: Union[ContributorParams, dict, None] = None
-    ) -> List[Contributor]:
+        self, params: ContributorParams | dict | None = None
+    ) -> list[Contributor]:
         """GET /repos/{owner}/{repo}/contributors
 
         Args:
             params: ContributorParams model or dict with query parameters
 
         Returns:
-            List of Contributor objects with contributor information
+            list of Contributor objects with contributor information
 
         Example:
             # Using parameter model (recommended)
@@ -237,16 +233,14 @@ class GithubClient:
                 return []
         return []
 
-    def get_releases(
-        self, params: Union[ReleaseParams, dict, None] = None
-    ) -> List[Release]:
+    def get_releases(self, params: ReleaseParams | dict | None = None) -> list[Release]:
         """GET /repos/{owner}/{repo}/releases
 
         Args:
             params: ReleaseParams model or dict with query parameters
 
         Returns:
-            List of Release objects with release information
+            list of Release objects with release information
 
         Example:
             # Using parameter model (recommended)
@@ -343,8 +337,8 @@ class GithubClient:
         return None
 
     def get_pull_request_commits(
-        self, number: int, params: Union[PullRequestCommitsParams, dict, None] = None
-    ) -> List[Commit]:
+        self, number: int, params: PullRequestCommitsParams | dict | None = None
+    ) -> list[Commit]:
         """GET /repos/{owner}/{repo}/pulls/{number}/commits
 
         Args:
@@ -352,7 +346,7 @@ class GithubClient:
             params: PullRequestCommitsParams model or dict with query parameters
 
         Returns:
-            List of Commit objects for the pull request
+            list of Commit objects for the pull request
 
         Example:
             # Using parameter model (recommended)
@@ -373,8 +367,8 @@ class GithubClient:
         return []
 
     def get_pull_request_reviews(
-        self, number: int, params: Union[PullRequestReviewsParams, dict, None] = None
-    ) -> List[dict]:
+        self, number: int, params: PullRequestReviewsParams | dict | None = None
+    ) -> list[dict]:
         """GET /repos/{owner}/{repo}/pulls/{number}/reviews
 
         Args:
@@ -382,7 +376,7 @@ class GithubClient:
             params: PullRequestReviewsParams model or dict with query parameters
 
         Returns:
-            List of pull request review data (raw dict for now)
+            list of pull request review data (raw dict for now)
 
         Example:
             # Using parameter model (recommended)

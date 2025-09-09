@@ -3,8 +3,8 @@ GitHub API parameter models for type safety and discoverability.
 These models make it clear what parameters are available for each endpoint.
 """
 
+from __future__ import annotations
 from datetime import datetime
-from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
@@ -52,35 +52,35 @@ class IssueSort(str, Enum):
 class CommitParams(BaseModel):
     """Parameters for /repos/{owner}/{repo}/commits endpoint"""
 
-    sha: Optional[str] = Field(
+    sha: str | None = Field(
         default=None, description="SHA or branch to start listing commits from"
     )
-    path: Optional[str] = Field(
+    path: str | None = Field(
         default=None,
         description="Only commits containing this file path will be returned",
     )
-    author: Optional[str] = Field(
+    author: str | None = Field(
         default=None,
         description="GitHub username or email address to filter by commit author",
     )
-    committer: Optional[str] = Field(
+    committer: str | None = Field(
         default=None,
         description="GitHub username or email address to filter by commit committer",
     )
-    since: Optional[str] = Field(
+    since: str | None = Field(
         default=None,
         description="Only show results that were last updated after the given time"
         "(ISO 8601: YYYY-MM-DDTHH:MM:SSZ)",
     )
-    until: Optional[str] = Field(
+    until: str | None = Field(
         default=None,
         description="Only commits before this date will be returned"
         "(ISO 8601: YYYY-MM-DDTHH:MM:SSZ)",
     )
-    per_page: Optional[int] = Field(
+    per_page: int | None = Field(
         default=30, ge=1, le=100, description="Number of results per page (1-100)"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         default=1, ge=1, description="Page number of results to fetch"
     )
 
@@ -113,27 +113,27 @@ class CommitParams(BaseModel):
 class PullRequestParams(BaseModel):
     """Parameters for /repos/{owner}/{repo}/pulls endpoint"""
 
-    state: Optional[PullRequestState] = Field(
+    state: PullRequestState | None = Field(
         default=PullRequestState.OPEN, description="State of pull requests to retrieve"
     )
-    head: Optional[str] = Field(
+    head: str | None = Field(
         default=None,
         description="Filter pulls by head user or head organization and branch name"
         "(format: user:ref-name)",
     )
-    base: Optional[str] = Field(
+    base: str | None = Field(
         default=None, description="Filter pulls by base branch name"
     )
-    sort: Optional[PullRequestSort] = Field(
+    sort: PullRequestSort | None = Field(
         default=PullRequestSort.CREATED, description="What to sort results by"
     )
-    direction: Optional[SortOrder] = Field(
+    direction: SortOrder | None = Field(
         default=SortOrder.DESC, description="Sort direction"
     )
-    per_page: Optional[int] = Field(
+    per_page: int | None = Field(
         default=30, ge=1, le=100, description="Number of results per page (1-100)"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         default=1, ge=1, description="Page number of results to fetch"
     )
 
@@ -153,41 +153,41 @@ class PullRequestParams(BaseModel):
 class IssueParams(BaseModel):
     """Parameters for /repos/{owner}/{repo}/issues endpoint"""
 
-    milestone: Optional[str] = Field(
+    milestone: str | None = Field(
         default=None, description="Milestone number or 'none' or '*'"
     )
-    state: Optional[IssueState] = Field(
+    state: IssueState | None = Field(
         default=IssueState.OPEN, description="State of issues to retrieve"
     )
-    assignee: Optional[str] = Field(
+    assignee: str | None = Field(
         default=None,
         description="Username assigned to the issues or 'none' for unassigned",
     )
-    creator: Optional[str] = Field(
+    creator: str | None = Field(
         default=None, description="Username that created the issues"
     )
-    mentioned: Optional[str] = Field(
+    mentioned: str | None = Field(
         default=None, description="Username that's mentioned in the issues"
     )
-    labels: Optional[str] = Field(
+    labels: str | None = Field(
         default=None,
         description="Comma-separated list of label names (e.g., 'bug,help wanted')",
     )
-    sort: Optional[IssueSort] = Field(
+    sort: IssueSort | None = Field(
         default=IssueSort.CREATED, description="What to sort results by"
     )
-    direction: Optional[SortOrder] = Field(
+    direction: SortOrder | None = Field(
         default=SortOrder.DESC, description="Sort direction"
     )
-    since: Optional[str] = Field(
+    since: str | None = Field(
         default=None,
         description="Only show issues updated after this date"
         "(ISO 8601: YYYY-MM-DDTHH:MM:SSZ)",
     )
-    per_page: Optional[int] = Field(
+    per_page: int | None = Field(
         default=30, ge=1, le=100, description="Number of results per page (1-100)"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         default=1, ge=1, description="Page number of results to fetch"
     )
 
@@ -207,13 +207,13 @@ class IssueParams(BaseModel):
 class ContributorParams(BaseModel):
     """Parameters for /repos/{owner}/{repo}/contributors endpoint"""
 
-    anon: Optional[bool] = Field(
+    anon: bool | None = Field(
         default=False, description="Include anonymous contributors in results"
     )
-    per_page: Optional[int] = Field(
+    per_page: int | None = Field(
         default=30, ge=1, le=100, description="Number of results per page (1-100)"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         default=1, ge=1, description="Page number of results to fetch"
     )
 
@@ -224,14 +224,14 @@ class ContributorParams(BaseModel):
 class BranchParams(BaseModel):
     """Parameters for /repos/{owner}/{repo}/branches endpoint"""
 
-    protected: Optional[bool] = Field(
+    protected: bool | None = Field(
         default=None,
         description="Only show protected branches if True, only unprotected if False",
     )
-    per_page: Optional[int] = Field(
+    per_page: int | None = Field(
         default=30, ge=1, le=100, description="Number of results per page (1-100)"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         default=1, ge=1, description="Page number of results to fetch"
     )
 
@@ -242,10 +242,10 @@ class BranchParams(BaseModel):
 class ReleaseParams(BaseModel):
     """Parameters for /repos/{owner}/{repo}/releases endpoint"""
 
-    per_page: Optional[int] = Field(
+    per_page: int | None = Field(
         default=30, ge=1, le=100, description="Number of results per page (1-100)"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         default=1, ge=1, description="Page number of results to fetch"
     )
 
@@ -256,10 +256,10 @@ class ReleaseParams(BaseModel):
 class PullRequestCommitsParams(BaseModel):
     """Parameters for /repos/{owner}/{repo}/pulls/{number}/commits endpoint"""
 
-    per_page: Optional[int] = Field(
+    per_page: int | None = Field(
         default=30, ge=1, le=100, description="Number of results per page (1-100)"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         default=1, ge=1, description="Page number of results to fetch"
     )
 
@@ -270,10 +270,10 @@ class PullRequestCommitsParams(BaseModel):
 class PullRequestReviewsParams(BaseModel):
     """Parameters for /repos/{owner}/{repo}/pulls/{number}/reviews endpoint"""
 
-    per_page: Optional[int] = Field(
+    per_page: int | None = Field(
         default=30, ge=1, le=100, description="Number of results per page (1-100)"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         default=1, ge=1, description="Page number of results to fetch"
     )
 

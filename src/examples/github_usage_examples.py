@@ -21,7 +21,7 @@ from clients.github_params import (
     ContributorParams,
     ReleaseParams,
 )
-from clients.github_models import (
+from services.github.models import (
     Repository,
     Commit,
     PullRequest,
