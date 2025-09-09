@@ -96,22 +96,23 @@ class JiraAnalyzer:
         sprint_info = self.sprint_service.get_sprint_info(sprint)
 
         # Get done bugs for this sprint
-        issues = self.issue_service.get_done_bugs_for_sprint(project, sprint.id)
+        bugs = self.issue_service.get_done_bugs_for_sprint(project, sprint.id)
+        issues = self.issue_service.get_issues_for_sprint(project, sprint.id)
 
         # Get detailed issue information for display
-        issue_details = []
-        for issue in issues:
+        bugs_details = []
+        for issue in bugs:
             issue_info = self.issue_service.get_issue_info(issue)
-            issue_details.append(issue_info)
+            bugs_details.append(issue_info)
 
         # Get comprehensive metrics using raw issue objects
-        detailed_metrics = self.issue_service.get_sprint_detailed_metrics(issues)
-        average_time_in_status = self.issue_service.get_time_per_status(issues)
+        detailed_metrics = self.issue_service.get_sprint_detailed_metrics(bugs)
+        average_time_in_status = self.issue_service.get_avg_time_per_status(issues)
 
         return {
             "sprint_info": sprint_info,
-            "issues": issue_details,
-            "issue_count": len(issues),
+            "issues": bugs_details,
+            "issue_count": len(bugs),
             "metrics": detailed_metrics,
             "status_deltas": average_time_in_status,
         }

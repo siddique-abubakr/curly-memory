@@ -108,7 +108,7 @@ class IssueService:
             self.logger.error(f"Error while calculating time in status for issue {e}")
         return status_deltas
 
-    def get_time_per_status(self, issues: list[Issue]) -> dict[str, timedelta]:
+    def get_avg_time_per_status(self, issues: list[Issue]) -> dict[str, timedelta]:
         """Returns average time in status for the tickets of a sprint"""
         all_status_times = defaultdict(list)
 
