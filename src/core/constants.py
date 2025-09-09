@@ -1,3 +1,4 @@
+import os
 from core.enums import Boards, Projects
 from datetime import datetime, timezone
 
@@ -23,4 +24,19 @@ SPRINT_FILTER_CONFIG = {
     "specific_sprint_ids": [],
     # Whether to include sprints with no end date
     "include_no_end_date": True,
+}
+
+# Github Configurations
+GITHUB_CONFIG = {
+    "owner": "arbisoft",
+    "repo": "litmustest-backend",
+    "headers": {
+        "Authorization": f"token {os.getenv("GITHUB_TOKEN")}",
+        "Accept": "application/vnd.github+json",
+    },
+    # Configuration: Choose grouping method
+    "grouping": "monthly",  # Options: "monthly", "semi-monthly"
+    # Date filtering configuration
+    "start_date": "2024-01-01",  # Format: YYYY-MM-DD, set to None to disable
+    "end_date": None,  # Format: YYYY-MM-DD, set to None to disable
 }

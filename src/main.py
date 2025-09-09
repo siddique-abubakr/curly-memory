@@ -1,7 +1,11 @@
-from clients.jira_client import jira
+from clients.jira import jira
 from core.constants import PROJECTS_TO_INCLUDE, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
 from core.logger import Logger
+from dotenv import load_dotenv
 from services import JiraAnalyzer
+
+# Load the environment variables
+load_dotenv()
 
 
 def main():

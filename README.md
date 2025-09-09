@@ -143,7 +143,7 @@ poetry run python src/main.py
 
 ```python
 from services.jira_analyzer import JiraAnalyzer
-from clients.jira_client import jira
+from clients.jira import jira
 
 analyzer = JiraAnalyzer(jira)
 results = analyzer.analyze_project("PROJECT_KEY", [BOARD_ID])
