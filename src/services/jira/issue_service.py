@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from core.logger import Logger
 from services.jira.models import Issue
+from services.jira.models.sprint import Sprint
 from services.jira.models.tracking import Changelog, ChangelogItem
 
 
@@ -60,6 +61,28 @@ class IssueService:
             if any(item.field_id == "status" for item in changelog.items)
         ]
 
+    def filter_changelogs_by_sprint_dates(
+        self, changelogs: list[Changelog], sprint: Sprint
+    ) -> list[Changelog]:
+        """Filter changelogs to only include those within the sprint date range"""
+        try:
+            sprint_start = isoparse(sprint.start_date)
+            sprint_end = isoparse(sprint.end_date) if sprint.end_date else None
+
+            filtered_changelogs = []
+            for changelog in changelogs:
+                changelog_date = isoparse(changelog.created)
+
+                # Include changelog if it's within sprint date range
+                if changelog_date >= sprint_start:
+                    if sprint_end is None or changelog_date <= sprint_end:
+                        filtered_changelogs.append(changelog)
+
+            return filtered_changelogs
+        except Exception as e:
+            self.logger.error(f"Error filtering changelogs by sprint dates: {e}")
+            return changelogs  # Return original list if filtering fails
+
     def group_changelogs_by_from_status(
         self, changelogs: list[Changelog]
     ) -> dict[str, list[Changelog]]:
@@ -108,16 +131,30 @@ class IssueService:
             self.logger.error(f"Error while calculating time in status for issue {e}")
         return status_deltas
 
-    def get_avg_time_per_status(self, issues: list[Issue]) -> dict[str, timedelta]:
-        """Returns average time in status for the tickets of a sprint"""
+    def get_avg_time_per_status(
+        self, issues: list[Issue], sprint: Sprint = None
+    ) -> dict[str, timedelta]:
+        """Returns average time in status for the tickets of a sprint.
+        If sprint is provided, only considers changelogs within the sprint
+        date range."""
         all_status_times = defaultdict(list)
 
         for issue in issues:
             try:
-                status_changelogs = self.filter_status_changelogs(
-                    self.get_issue_changelogs(issue.key)
+                # Get all changelogs for the issue
+                all_changelogs = self.get_issue_changelogs(issue.key)
+
+                # Filter by sprint dates if sprint is provided
+                if sprint:
+                    all_changelogs = self.filter_changelogs_by_sprint_dates(
+                        all_changelogs, sprint
+                    )
+
+                # Filter for status changelogs only
+                status_changelogs = self.filter_status_changelogs(all_changelogs)
+                issue_status_times = self.calculate_time_per_status(
+                    status_changelogs
                 )
-                issue_status_times = self.calculate_time_per_status(status_changelogs)
 
                 # Collect times for each status across all issues
                 for status, time_spent in issue_status_times.items():

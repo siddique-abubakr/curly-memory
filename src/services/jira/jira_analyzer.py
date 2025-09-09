@@ -107,7 +107,9 @@ class JiraAnalyzer:
 
         # Get comprehensive metrics using raw issue objects
         detailed_metrics = self.issue_service.get_sprint_detailed_metrics(bugs)
-        average_time_in_status = self.issue_service.get_avg_time_per_status(issues)
+        average_time_in_status = self.issue_service.get_avg_time_per_status(
+            issues, sprint
+        )
 
         return {
             "sprint_info": sprint_info,
