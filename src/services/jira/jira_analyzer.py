@@ -22,8 +22,13 @@ class JiraAnalyzer:
         project: str,
         scrum_board_ids: list[int],
         sprint_filter_config: dict[str, any] = None,
+        analysis_type: str = "combined",
     ) -> dict[str, any]:
-        """Analyze a single project and its scrum boards."""
+        """Analyze a single project and its scrum boards.
+
+        Args:
+            analysis_type: "combined", "resolution_metrics", or "status_metrics"
+        """
         self.logger.debug(f"Starting analysis for project: {project}")
 
         results = {
@@ -42,7 +47,9 @@ class JiraAnalyzer:
             )
 
             for board in scrum_boards:
-                board_result = self._analyze_board(board, project, sprint_filter_config)
+                board_result = self._analyze_board(
+                    board, project, sprint_filter_config, analysis_type
+                )
                 results["boards"].append(board_result)
                 results["total_issues"] += board_result["total_issues"]
 
@@ -62,7 +69,11 @@ class JiraAnalyzer:
         return results
 
     def _analyze_board(
-        self, board: any, project: str, sprint_filter_config: dict[str, any] = None
+        self,
+        board: any,
+        project: str,
+        sprint_filter_config: dict[str, any] = None,
+        analysis_type: str = "combined",
     ) -> dict[str, any]:
         """Analyze a single board."""
         self.logger.debug(f"Analyzing board: {board.name} (ID: {board.id})")
@@ -80,7 +91,7 @@ class JiraAnalyzer:
             )
 
             for sprint in sprints:
-                sprint_result = self._analyze_sprint(sprint, project)
+                sprint_result = self._analyze_sprint(sprint, project, analysis_type)
                 board_result["sprints"].append(sprint_result)
                 board_result["total_issues"] += sprint_result["issue_count"]
 
@@ -89,7 +100,9 @@ class JiraAnalyzer:
 
         return board_result
 
-    def _analyze_sprint(self, sprint: any, project: str) -> dict[str, any]:
+    def _analyze_sprint(
+        self, sprint: any, project: str, analysis_type: str = "combined"
+    ) -> dict[str, any]:
         """Analyze a single sprint."""
         self.logger.debug(f"Analyzing sprint: {sprint.name} (ID: {sprint.id})")
 
@@ -105,47 +118,83 @@ class JiraAnalyzer:
             issue_info = self.issue_service.get_issue_info(issue)
             bugs_details.append(issue_info)
 
-        # Get comprehensive metrics using raw issue objects
-        detailed_metrics = self.issue_service.get_sprint_detailed_metrics(bugs)
-        average_time_in_status = self.issue_service.get_avg_time_per_status(
-            issues, sprint
-        )
-
-        return {
+        # Get metrics based on analysis type
+        result = {
             "sprint_info": sprint_info,
             "issues": bugs_details,
             "issue_count": len(bugs),
-            "metrics": detailed_metrics,
-            "status_deltas": average_time_in_status,
         }
 
-    def generate_report(self, results: dict[str, any]) -> str:
-        """Generate a formatted report from analysis results."""
+        if analysis_type in ["combined", "resolution_metrics"]:
+            detailed_metrics = self.issue_service.get_sprint_detailed_metrics(bugs)
+            result["metrics"] = detailed_metrics
+
+        if analysis_type in ["combined", "status_metrics"]:
+            average_time_in_status = self.issue_service.get_avg_time_per_status(
+                issues, sprint
+            )
+            result["status_deltas"] = average_time_in_status
+
+        return result
+
+    def analyze_resolution_metrics_only(
+        self,
+        project: str,
+        scrum_board_ids: list[int],
+        sprint_filter_config: dict[str, any] = None,
+    ) -> dict[str, any]:
+        """Analyze project focusing only on resolution time metrics."""
+        return self.analyze_project(
+            project, scrum_board_ids, sprint_filter_config, "resolution_metrics"
+        )
+
+    def analyze_status_metrics_only(
+        self,
+        project: str,
+        scrum_board_ids: list[int],
+        sprint_filter_config: dict[str, any] = None,
+    ) -> dict[str, any]:
+        """Analyze project focusing only on status time metrics."""
+        return self.analyze_project(
+            project, scrum_board_ids, sprint_filter_config, "status_metrics"
+        )
+
+    def generate_resolution_report(self, results: dict[str, any]) -> str:
+        """Generate report focused on resolution metrics."""
+        return self.generate_report(results, "resolution_metrics")
+
+    def generate_status_report(self, results: dict[str, any]) -> str:
+        """Generate report focused on status metrics."""
+        return self.generate_report(results, "status_metrics")
+
+    def generate_report(
+        self, results: dict[str, any], report_type: str = "combined"
+    ) -> str:
+        """Generate a formatted report from analysis results.
+
+        Args:
+            report_type: "combined", "resolution_metrics", or "status_metrics"
+        """
+        if report_type == "resolution_metrics":
+            return self._generate_resolution_report(results)
+        elif report_type == "status_metrics":
+            return self._generate_status_report(results)
+        else:
+            return self._generate_combined_report(results)
+
+    def _generate_combined_report(self, results: dict[str, any]) -> str:
+        """Generate combined report with both resolution and status metrics."""
         report = []
         report.append(
-            f"\n=== Jira Analysis Report for Project" f": {results['project']} ==="
+            f"\n=== Combined Jira Analysis Report for Project: {results['project']} ==="
         )
         report.append(f"Total Issues Analyzed: {results['total_issues']}")
 
         # Add filter configuration info
-        if results.get("filter_config_used"):
-            filter_config = results["filter_config_used"]
-            report.append("Filter Configuration:")
-            if filter_config.get("date_range", {}).get("enabled"):
-                date_range = filter_config["date_range"]
-                start_str = date_range["start_date"].strftime("%Y-%m-%d")
-                end_str = date_range["end_date"].strftime("%Y-%m-%d")
-                report.append(f"  Date Range: {start_str} to {end_str}")
-            if filter_config.get("sprint_states"):
-                report.append(
-                    f"  Sprint States: {', '.join(filter_config['sprint_states'])}"
-                )
-            if filter_config.get("specific_sprint_ids"):
-                report.append(
-                    f"  Specific Sprint IDs: {filter_config['specific_sprint_ids']}"
-                )
+        self._add_filter_config_to_report(report, results)
 
-        if results["total_resolution_metrics"]["count"] > 0:
+        # Add overall resolution metrics
+        if results.get("total_resolution_metrics", {}).get("count", 0) > 0:
             metrics = results["total_resolution_metrics"]
             report.append(
                 f"Average Resolution Time: {metrics['avg_resolution_days']:.1f} days"
@@ -164,56 +213,147 @@ class JiraAnalyzer:
             report.append(f"Total Issues: {board_result['total_issues']}")
 
             for sprint_result in board_result["sprints"]:
-                sprint_info = sprint_result["sprint_info"]
-                status_deltas: dict[str, timedelta] = sprint_result["status_deltas"]
-                metrics = sprint_result["metrics"]
-
-                report.append(
-                    f"\n  Sprint: {sprint_info['name']} ({sprint_info['state']}) - "
-                    f"{sprint_result['issue_count']} issues"
-                )
-
-                if not sprint_result.get("issue_count"):
-                    report.append(
-                        f"    No issues found for sprint {sprint_info['name']}\n"
-                    )
-
-                # Add priority distribution
-                if metrics.get("priority_distribution", {}).get("total", 0) > 0:
-                    priority_dist = metrics["priority_distribution"]
-                    report.append("    Priority Distribution:")
-                    report.append(f"      Critical: {priority_dist['critical']}")
-                    report.append(f"      Major: {priority_dist['major']}")
-                    report.append(f"      Minor: {priority_dist['minor']}")
-
-                # Add longest resolution time
-                if metrics.get("longest_resolution_issue"):
-                    longest_issue = metrics["longest_resolution_issue"]
-                    report.append(
-                        f"    Longest Resolution: {longest_issue['key']} - "
-                        f"{longest_issue['resolution_days']} days"
-                    )
-                    report.append(f"      Summary: {longest_issue['summary']}")
-                    report.append(f"      Priority: {longest_issue['priority']}")
-
-                # Add resolution metrics if available
-                if metrics.get("resolution_metrics", {}).get("count", 0) > 0:
-                    res_metrics = metrics["resolution_metrics"]
-                    report.append("    Resolution Metrics:")
-                    report.append(
-                        f"      Average: {res_metrics['avg_resolution_days']:.1f} days"
-                    )
-                    report.append(
-                        f"      Max: {res_metrics['max_resolution_days']} days"
-                    )
-                    report.append(
-                        f"      Min: {res_metrics['min_resolution_days']} days"
-                    )
-
-                # Add status timedeltas if available
-                if status_deltas:
-                    report.append("    Status Deltas:")
-                    for k, v in status_deltas.items():
-                        report.append(f"      {k}: {v.days} days")
+                self._add_sprint_to_report(report, sprint_result)
 
         return "\n".join(report)
+
+    def _generate_resolution_report(self, results: dict[str, any]) -> str:
+        """Generate report focused on resolution time metrics."""
+        report = []
+        report.append(
+            f"\n=== Resolution Time Analysis Report for Project:"
+            f"{results['project']} ==="
+        )
+        report.append(f"Total Issues Analyzed: {results['total_issues']}")
+
+        # Add filter configuration info
+        self._add_filter_config_to_report(report, results)
+
+        # Add overall resolution metrics
+        if results.get("total_resolution_metrics", {}).get("count", 0) > 0:
+            metrics = results["total_resolution_metrics"]
+            report.append("\n=== Overall Resolution Metrics ===")
+            report.append(
+                f"Average Resolution Time: {metrics['avg_resolution_days']:.1f} days"
+            )
+            report.append(f"Max Resolution Time: {metrics['max_resolution_days']} days")
+            report.append(f"Min Resolution Time: {metrics['min_resolution_days']} days")
+
+        if not results.get("boards"):
+            report.append(f"\nNo Scrum boards found for project {results['project']}")
+            return "\n".join(report)
+
+        report.append("\n=== Board Details ===")
+        for board_result in results["boards"]:
+            board_info = board_result["board_info"]
+            report.append(f"\nBoard: {board_info['name']} (ID: {board_info['id']})")
+            report.append(f"Total Issues: {board_result['total_issues']}")
+
+            for sprint_result in board_result["sprints"]:
+                self._add_sprint_to_report(report, sprint_result, resolution_only=True)
+
+        return "\n".join(report)
+
+    def _generate_status_report(self, results: dict[str, any]) -> str:
+        """Generate report focused on status time metrics."""
+        report = []
+        report.append(
+            f"\n=== Status Time Analysis Report for Project: {results['project']} ==="
+        )
+        report.append(f"Total Issues Analyzed: {results['total_issues']}")
+
+        # Add filter configuration info
+        self._add_filter_config_to_report(report, results)
+
+        if not results.get("boards"):
+            report.append(f"\nNo Scrum boards found for project {results['project']}")
+            return "\n".join(report)
+
+        report.append("\n=== Board Details ===")
+        for board_result in results["boards"]:
+            board_info = board_result["board_info"]
+            report.append(f"\nBoard: {board_info['name']} (ID: {board_info['id']})")
+            report.append(f"Total Issues: {board_result['total_issues']}")
+
+            for sprint_result in board_result["sprints"]:
+                self._add_sprint_to_report(report, sprint_result, status_only=True)
+
+        return "\n".join(report)
+
+    def _add_filter_config_to_report(
+        self, report: list[str], results: dict[str, any]
+    ) -> None:
+        """Add filter configuration info to report."""
+        if results.get("filter_config_used"):
+            filter_config = results["filter_config_used"]
+            report.append("Filter Configuration:")
+            if filter_config.get("date_range", {}).get("enabled"):
+                date_range = filter_config["date_range"]
+                start_str = date_range["start_date"].strftime("%Y-%m-%d")
+                end_str = date_range["end_date"].strftime("%Y-%m-%d")
+                report.append(f"  Date Range: {start_str} to {end_str}")
+            if filter_config.get("sprint_states"):
+                report.append(
+                    f"  Sprint States: {', '.join(filter_config['sprint_states'])}"
+                )
+            if filter_config.get("specific_sprint_ids"):
+                report.append(
+                    f"  Specific Sprint IDs: {filter_config['specific_sprint_ids']}"
+                )
+
+    def _add_sprint_to_report(
+        self,
+        report: list[str],
+        sprint_result: dict[str, any],
+        resolution_only: bool = False,
+        status_only: bool = False,
+    ) -> None:
+        """Add sprint information to report based on type."""
+        sprint_info = sprint_result["sprint_info"]
+        report.append(
+            f"\n  Sprint: {sprint_info['name']} ({sprint_info['state']}) - "
+            f"{sprint_result['issue_count']} issues"
+        )
+
+        if not sprint_result.get("issue_count"):
+            report.append(f"    No issues found for sprint {sprint_info['name']}\n")
+            return
+
+        # Add resolution metrics if available and requested
+        if not status_only and sprint_result.get("metrics"):
+            metrics = sprint_result["metrics"]
+
+            # Add priority distribution
+            if metrics.get("priority_distribution", {}).get("total", 0) > 0:
+                priority_dist = metrics["priority_distribution"]
+                report.append("    Priority Distribution:")
+                report.append(f"      Critical: {priority_dist['critical']}")
+                report.append(f"      Major: {priority_dist['major']}")
+                report.append(f"      Minor: {priority_dist['minor']}")
+
+            # Add longest resolution time
+            if metrics.get("longest_resolution_issue"):
+                longest_issue = metrics["longest_resolution_issue"]
+                report.append(
+                    f"    Longest Resolution: {longest_issue['key']} - "
+                    f"{longest_issue['resolution_days']} days"
+                )
+                report.append(f"      Summary: {longest_issue['summary']}")
+                report.append(f"      Priority: {longest_issue['priority']}")
+
+            # Add resolution metrics if available
+            if metrics.get("resolution_metrics", {}).get("count", 0) > 0:
+                res_metrics = metrics["resolution_metrics"]
+                report.append("    Resolution Metrics:")
+                report.append(
+                    f"      Average: {res_metrics['avg_resolution_days']:.1f} days"
+                )
+                report.append(f"      Max: {res_metrics['max_resolution_days']} days")
+                report.append(f"      Min: {res_metrics['min_resolution_days']} days")
+
+        # Add status timedeltas if available and requested
+        if not resolution_only and sprint_result.get("status_deltas"):
+            status_deltas: dict[str, timedelta] = sprint_result["status_deltas"]
+            report.append("    Status Time Metrics:")
+            for status, delta in status_deltas.items():
+                report.append(f"      {status}: {delta.days} days")

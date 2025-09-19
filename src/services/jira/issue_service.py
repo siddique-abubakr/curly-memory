@@ -152,9 +152,7 @@ class IssueService:
 
                 # Filter for status changelogs only
                 status_changelogs = self.filter_status_changelogs(all_changelogs)
-                issue_status_times = self.calculate_time_per_status(
-                    status_changelogs
-                )
+                issue_status_times = self.calculate_time_per_status(status_changelogs)
 
                 # Collect times for each status across all issues
                 for status, time_spent in issue_status_times.items():

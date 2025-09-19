@@ -21,14 +21,27 @@ def main():
         for project in PROJECTS_TO_INCLUDE:
             logger.info(f"Processing project: {project}")
 
-            # Analyze the project with sprint filter configuration
-            results = analyzer.analyze_project(
+            # Option 1: Combined analysis (default behavior)
+            # results = analyzer.analyze_project(
+            #     project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
+            # )
+            # report = analyzer.generate_report(results)
+            # logger.info(f"\n{report}")
+
+            # Option 2: Separate reports (uncomment to use)
+            # Resolution metrics only
+            # resolution_results = analyzer.analyze_resolution_metrics_only(
+            #     project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
+            # )
+            # resolution_report = analyzer.generate_resolution_report(resolution_results)
+            # logger.info(f"\n{resolution_report}")
+
+            # # Status metrics only
+            status_results = analyzer.analyze_status_metrics_only(
                 project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
             )
-
-            # Generate and log the report
-            report = analyzer.generate_report(results)
-            logger.info(f"\n{report}")
+            status_report = analyzer.generate_status_report(status_results)
+            logger.info(f"\n{status_report}")
 
     except Exception as e:
         logger.error(f"Application error: {e}")

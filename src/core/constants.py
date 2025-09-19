@@ -10,8 +10,8 @@ KANBAN_BOARDS = [Boards.LTK_BOARD.value]
 SPRINT_FILTER_CONFIG = {
     # Date range filtering (since April 2025)
     "date_range": {
-        "start_date": datetime(2025, 3, 1, tzinfo=timezone.utc),  # March 1, 2025
-        "end_date": datetime.now(timezone.utc),  # Current date
+        "start_date": datetime(2025, 8, 1, tzinfo=timezone.utc),  # March 1, 2025
+        "end_date": datetime(2025, 9, 1, tzinfo=timezone.utc),  # Current date
         "enabled": True,
     },
     # Sprint state filtering

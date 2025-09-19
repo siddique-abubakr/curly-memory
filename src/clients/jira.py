@@ -1,6 +1,8 @@
 import os
-
+from dotenv import load_dotenv
 from services.jira.extensions.jira_extended import JiraEx
+
+load_dotenv()
 
 
 class JiraClient:
