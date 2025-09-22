@@ -34,4 +34,12 @@ class Status(Enum):
 
 class CustomField(Enum):
     SPRINT = "customfield_10020"
-    LABELS = "customfield_10043"
+    WIP_LABELS = "customfield_10043"
+
+
+class WIPLabels(Enum):
+    TODO_LIMIT_EXCEEDED = "TodoLimitExceeded"
+    INPROGRESS_LIMIT_EXCEEDED = "InProgressLimitExceeded"
+    REVIEWANDTESTING_LIMIT_EXCEEDED = "ReviewAndTestingLimitExceeded"
+    BLOCKED_LIMIT_EXCEEDED = "BlockedLimitExceeded"
+    QAREVIEW_LIMIT_EXCEEDED = "QaReviewLimitExceeded"

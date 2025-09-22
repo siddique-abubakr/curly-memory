@@ -3,6 +3,7 @@ from dateutil.parser import isoparse
 from collections import defaultdict
 
 from core.logger import Logger
+from core.enums import WIPLabels
 from services.jira.models import Issue
 from services.jira.models.sprint import Sprint
 from services.jira.models.tracking import Changelog, ChangelogItem
@@ -344,3 +345,183 @@ class IssueService:
             "longest_resolution_issue": self.get_longest_resolution_issue(valid_issues),
             "priority_distribution": self.calculate_priority_distribution(valid_issues),
         }
+
+    def get_wip_violations_for_issues(self, issues: list[Issue]) -> dict[str, any]:
+        """Get WIP limit violations from issues using changelogs for precise timing."""
+        violations = {
+            "total_violations": 0,
+            "violations_by_status": defaultdict(lambda: {
+                "count": 0,
+                "issues": [],
+                "longest_duration": 0,
+                "total_duration": 0
+            }),
+            "violation_details": []
+        }
+
+        wip_labels = {
+            WIPLabels.TODO_LIMIT_EXCEEDED.value: "To Do",
+            WIPLabels.INPROGRESS_LIMIT_EXCEEDED.value: "In Progress",
+            WIPLabels.REVIEWANDTESTING_LIMIT_EXCEEDED.value: "Review and Testing",
+            WIPLabels.BLOCKED_LIMIT_EXCEEDED.value: "Blocked",
+            WIPLabels.QAREVIEW_LIMIT_EXCEEDED.value: "QA Review",
+        }
+
+        for issue in issues:
+            try:
+                # Check if issue has WIP violation labels
+                if not self._issue_has_wip_violations(issue, wip_labels):
+                    continue
+
+                # Get changelogs to calculate precise violation duration
+                changelogs = self.get_issue_changelogs(issue.key)
+                wip_violation_periods = self._calculate_wip_violation_periods(
+                    changelogs, wip_labels, issue
+                )
+
+                for violation in wip_violation_periods:
+                    status_name = violation["status"]
+                    duration_days = violation["duration_days"]
+
+                    violations["total_violations"] += 1
+                    violations["violations_by_status"][status_name]["count"] += 1
+                    violations["violations_by_status"][status_name]["issues"].append({
+                        "key": issue.key,
+                        "summary": issue.fields.summary,
+                        "duration_days": duration_days,
+                        "violation_start": violation["start_date"],
+                        "violation_end": violation["end_date"],
+                        "label": violation["label"]
+                    })
+                    violations["violations_by_status"][status_name]["total_duration"] += duration_days
+
+                    if duration_days > violations["violations_by_status"][status_name]["longest_duration"]:
+                        violations["violations_by_status"][status_name]["longest_duration"] = duration_days
+
+                    violations["violation_details"].append({
+                        "issue_key": issue.key,
+                        "status": status_name,
+                        "duration_days": duration_days,
+                        "violation_type": violation["label"],
+                        "start_date": violation["start_date"],
+                        "end_date": violation["end_date"]
+                    })
+
+            except Exception as e:
+                self.logger.error(f"Error analyzing WIP violations for issue {getattr(issue, 'key', 'Unknown')}: {e}")
+
+        return dict(violations)
+
+    def _issue_has_wip_violations(self, issue: Issue, wip_labels: dict) -> bool:
+        """Check if issue has any WIP violation labels."""
+        try:
+            # Check in the custom field for WIP labels
+            if hasattr(issue.fields, 'customfield_10043') and issue.fields.customfield_10043:
+                for label in issue.fields.customfield_10043:
+                    if label in wip_labels:
+                        return True
+
+            # Fallback: check regular labels field
+            if hasattr(issue.fields, 'labels') and issue.fields.labels:
+                for label in issue.fields.labels:
+                    if label in wip_labels:
+                        return True
+
+            return False
+        except Exception as e:
+            self.logger.error(f"Error checking WIP labels for issue {getattr(issue, 'key', 'Unknown')}: {e}")
+            return False
+
+    def _calculate_wip_violation_periods(self, changelogs: list[Changelog], wip_labels: dict, issue: Issue) -> list[dict]:
+        """Calculate precise WIP violation periods using changelogs."""
+        violation_periods = []
+
+        try:
+            # Sort changelogs by date
+            sorted_changelogs = sorted(changelogs, key=lambda c: isoparse(c.created))
+
+            # Track active violations
+            active_violations = {}  # {label: start_date}
+
+            for changelog in sorted_changelogs:
+                changelog_date = isoparse(changelog.created)
+
+                # Check for label changes
+                for item in changelog.items:
+                    if item.field_id == "labels" or item.field == "labels":
+                        # Handle label additions/removals
+                        self._process_label_changes(item, changelog_date, wip_labels, active_violations, violation_periods)
+
+                    # Check for status changes that end violations
+                    elif item.field_id == "status" or item.field == "status":
+                        self._end_violations_on_status_change(item, changelog_date, active_violations, violation_periods, wip_labels)
+
+            # Handle any violations that are still active (no status change yet)
+            current_time = isoparse(issue.fields.updated)
+            for label, start_date in active_violations.items():
+                if label in wip_labels:
+                    duration = (current_time - start_date).days
+                    violation_periods.append({
+                        "label": label,
+                        "status": wip_labels[label],
+                        "start_date": start_date.isoformat(),
+                        "end_date": current_time.isoformat(),
+                        "duration_days": max(duration, 1)  # Minimum 1 day
+                    })
+
+        except Exception as e:
+            self.logger.error(f"Error calculating WIP violation periods: {e}")
+
+        return violation_periods
+
+    def _process_label_changes(self, item: ChangelogItem, changelog_date, wip_labels: dict, active_violations: dict, violation_periods: list):
+        """Process label additions and removals."""
+        try:
+            # Get added and removed labels
+            from_labels = set(item.from_string.split() if item.from_string else [])
+            to_labels = set(item.to_string.split() if item.to_string else [])
+
+            added_labels = to_labels - from_labels
+            removed_labels = from_labels - to_labels
+
+            # Start tracking new WIP violations
+            for label in added_labels:
+                if label in wip_labels:
+                    active_violations[label] = changelog_date
+
+            # End tracking for removed WIP violations
+            for label in removed_labels:
+                if label in wip_labels and label in active_violations:
+                    start_date = active_violations.pop(label)
+                    duration = (changelog_date - start_date).days
+                    violation_periods.append({
+                        "label": label,
+                        "status": wip_labels[label],
+                        "start_date": start_date.isoformat(),
+                        "end_date": changelog_date.isoformat(),
+                        "duration_days": max(duration, 1)  # Minimum 1 day
+                    })
+
+        except Exception as e:
+            self.logger.error(f"Error processing label changes: {e}")
+
+    def _end_violations_on_status_change(self, item: ChangelogItem, changelog_date, active_violations: dict, violation_periods: list, wip_labels: dict):
+        """End active violations when status changes."""
+        try:
+            # When status changes, end all active violations
+            for label, start_date in list(active_violations.items()):
+                if label in wip_labels:
+                    duration = (changelog_date - start_date).days
+                    violation_periods.append({
+                        "label": label,
+                        "status": wip_labels[label],
+                        "start_date": start_date.isoformat(),
+                        "end_date": changelog_date.isoformat(),
+                        "duration_days": max(duration, 1)  # Minimum 1 day
+                    })
+
+            # Clear all active violations after status change
+            active_violations.clear()
+
+        except Exception as e:
+            self.logger.error(f"Error ending violations on status change: {e}")

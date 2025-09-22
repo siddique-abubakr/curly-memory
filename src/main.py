@@ -33,15 +33,24 @@ def main():
             # resolution_results = analyzer.analyze_resolution_metrics_only(
             #     project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
             # )
-            # resolution_report = analyzer.generate_resolution_report(resolution_results)
+            # resolution_report = analyzer.generate_resolution_report(
+            #   resolution_results
+            # )
             # logger.info(f"\n{resolution_report}")
 
             # # Status metrics only
-            status_results = analyzer.analyze_status_metrics_only(
+            # status_results = analyzer.analyze_status_metrics_only(
+            #     project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
+            # )
+            # status_report = analyzer.generate_status_report(status_results)
+            # logger.info(f"\n{status_report}")
+
+            # Option 3: WIP Limit Violations only (uncomment to use)
+            wip_results = analyzer.analyze_wip_violations_only(
                 project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
             )
-            status_report = analyzer.generate_status_report(status_results)
-            logger.info(f"\n{status_report}")
+            wip_report = analyzer.generate_wip_violations_report(wip_results)
+            logger.info(f"\n{wip_report}")
 
     except Exception as e:
         logger.error(f"Application error: {e}")

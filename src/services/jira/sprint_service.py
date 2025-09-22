@@ -115,11 +115,11 @@ class SprintService:
         """Check if sprint falls within the specified date range."""
         try:
             # Handle sprints with no end date
-            if not hasattr(sprint, "endDate") or not sprint.endDate:
+            if not hasattr(sprint, "end_date") or not sprint.end_date:
                 return filter_config.get("include_no_end_date", False)
 
-            sprint_start = datetime.fromisoformat(sprint.startDate)
-            sprint_end = datetime.fromisoformat(sprint.endDate)
+            sprint_start = datetime.fromisoformat(sprint.start_date)
+            sprint_end = datetime.fromisoformat(sprint.end_date)
 
             # Check if sprint overlaps with the date range
             # Sprint is included if it overlaps with the date range
@@ -147,8 +147,8 @@ class SprintService:
     def is_sprint_active(self, sprint: Sprint) -> bool:
         """Check if a sprint is currently active."""
         try:
-            start_date = datetime.fromisoformat(sprint.startDate)
-            end_date = datetime.fromisoformat(sprint.endDate)
+            start_date = datetime.fromisoformat(sprint.start_date)
+            end_date = datetime.fromisoformat(sprint.end_date)
             current_time = datetime.now(timezone.utc)
 
             is_active = start_date < current_time < end_date

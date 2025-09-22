@@ -135,6 +135,10 @@ class JiraAnalyzer:
             )
             result["status_deltas"] = average_time_in_status
 
+        # Always include WIP limit violations (reuse existing issues)
+        wip_violations = self.issue_service.get_wip_violations_for_issues(issues)
+        result["wip_violations"] = wip_violations
+
         return result
 
     def analyze_resolution_metrics_only(
@@ -166,6 +170,128 @@ class JiraAnalyzer:
     def generate_status_report(self, results: dict[str, any]) -> str:
         """Generate report focused on status metrics."""
         return self.generate_report(results, "status_metrics")
+
+    def analyze_wip_violations_only(
+        self,
+        project: str,
+        scrum_board_ids: list[int],
+        sprint_filter_config: dict[str, any] = None,
+    ) -> dict[str, any]:
+        """Analyze project focusing only on WIP limit violations."""
+        self.logger.debug(f"Starting WIP violations analysis for project: {project}")
+
+        results = {
+            "project": project,
+            "boards": [],
+            "total_violations": 0,
+            "filter_config_used": sprint_filter_config,
+        }
+
+        try:
+            # Get boards for the project
+            boards = self.board_service.get_boards_for_project(project)
+            scrum_boards = self.board_service.filter_scrum_boards(
+                boards, scrum_board_ids
+            )
+
+            for board in scrum_boards:
+                board_result = self._analyze_board_wip_violations(
+                    board, project, sprint_filter_config
+                )
+                results["boards"].append(board_result)
+                results["total_violations"] += board_result.get("total_violations", 0)
+
+        except Exception as e:
+            self.logger.error(
+                f"Error analyzing WIP violations for project {project}: {e}"
+            )
+
+        return results
+
+    def _analyze_board_wip_violations(
+        self, board: any, project: str, sprint_filter_config: dict[str, any] = None
+    ) -> dict[str, any]:
+        """Analyze WIP violations for a single board."""
+        self.logger.debug(
+            f"Analyzing WIP violations for board: {board.name} (ID: {board.id})"
+        )
+
+        board_result = {
+            "board_info": self.board_service.get_board_info(board),
+            "sprints": [],
+            "total_violations": 0,
+        }
+
+        try:
+            # Get sprints based on filter configuration
+            sprints = self.sprint_service.get_sprints_for_board(
+                board.id, sprint_filter_config
+            )
+
+            for sprint in sprints:
+                # Get issues for this sprint (reuse from main flow)
+                issues = self.issue_service.get_issues_for_sprint(project, sprint.id)
+
+                sprint_wip_violations = (
+                    self.issue_service.get_wip_violations_for_issues(issues)
+                )
+
+                sprint_info = self.sprint_service.get_sprint_info(sprint)
+                sprint_result = {
+                    "sprint_info": sprint_info,
+                    "wip_violations": sprint_wip_violations,
+                }
+
+                board_result["sprints"].append(sprint_result)
+                board_result["total_violations"] += sprint_wip_violations.get(
+                    "total_violations", 0
+                )
+
+        except Exception as e:
+            self.logger.error(
+                f"Error analyzing WIP violations for board {board.id}: {e}"
+            )
+
+        return board_result
+
+    def generate_wip_violations_report(self, results: dict[str, any]) -> str:
+        """Generate report focused on WIP limit violations."""
+        report = []
+        report.append(
+            f"\n=== WIP Limit Violations Report for Project: {results['project']} ==="
+        )
+        report.append(f"Total Violations: {results.get('total_violations', 0)}")
+
+        # Add filter configuration info
+        self._add_filter_config_to_report(report, results)
+
+        if not results.get("boards"):
+            report.append(f"\nNo boards found for project {results['project']}")
+            return "\n".join(report)
+
+        report.append("\n=== Board Details ===")
+        for board_result in results["boards"]:
+            board_info = board_result["board_info"]
+            report.append(f"\nBoard: {board_info['name']} (ID: {board_info['id']})")
+            report.append(
+                f"Total Violations: {board_result.get('total_violations', 0)}"
+            )
+
+            for sprint_result in board_result["sprints"]:
+                sprint_info = sprint_result["sprint_info"]
+                wip_violations = sprint_result.get("wip_violations", {})
+
+                if wip_violations.get("total_violations", 0) > 0:
+                    wip_report = self._format_wip_violations_report(
+                        wip_violations, sprint_info["name"]
+                    )
+                    report.append(f"\n  {wip_report}")
+                else:
+                    report.append(
+                        f"\n  Sprint: {sprint_info['name']} - No WIP violations"
+                    )
+
+        return "\n".join(report)
 
     def generate_report(
         self, results: dict[str, any], report_type: str = "combined"
@@ -357,3 +483,122 @@ class JiraAnalyzer:
             report.append("    Status Time Metrics:")
             for status, delta in status_deltas.items():
                 report.append(f"      {status}: {delta.days} days")
+
+        # Add WIP violations if available
+        if sprint_result.get("wip_violations"):
+            wip_violations = sprint_result["wip_violations"]
+            if wip_violations.get("total_violations", 0) > 0:
+                wip_summary = self._get_wip_violation_summary(wip_violations)
+                report.append("    WIP Limit Violations:")
+                report.append(
+                    f"      Total Violations: {wip_summary['total_violations']}"
+                )
+                report.append(
+                    f"      Average Duration: "
+                    f"{wip_summary['average_violation_duration']:.1f} days"
+                )
+
+                for status, data in wip_summary["status_breakdown"].items():
+                    report.append(
+                        f"      {status}: {data['violation_count']} "
+                        f"violations (avg {data['average_duration']:.1f} days)"
+                    )
+
+    def _get_wip_violation_summary(self, violations: dict[str, any]) -> dict[str, any]:
+        """Generate summary statistics for WIP violations."""
+        summary = {
+            "total_violations": violations.get("total_violations", 0),
+            "status_breakdown": {},
+            "average_violation_duration": 0,
+            "longest_violation": {"status": None, "duration": 0, "issue_key": None},
+        }
+
+        violations_by_status = violations.get("violations_by_status", {})
+        total_duration = 0
+
+        for status, data in violations_by_status.items():
+            count = data["count"]
+            total_status_duration = data["total_duration"]
+            longest_duration = data["longest_duration"]
+
+            summary["status_breakdown"][status] = {
+                "violation_count": count,
+                "average_duration": total_status_duration / count if count > 0 else 0,
+                "longest_duration": longest_duration,
+            }
+
+            total_duration += total_status_duration
+
+            # Track overall longest violation
+            if longest_duration > summary["longest_violation"]["duration"]:
+                longest_issue = None
+                for issue_data in data["issues"]:
+                    if issue_data["duration_days"] == longest_duration:
+                        longest_issue = issue_data["key"]
+                        break
+
+                summary["longest_violation"] = {
+                    "status": status,
+                    "duration": longest_duration,
+                    "issue_key": longest_issue,
+                }
+
+        # Calculate overall average
+        if summary["total_violations"] > 0:
+            summary["average_violation_duration"] = (
+                total_duration / summary["total_violations"]
+            )
+
+        return summary
+
+    def _format_wip_violations_report(
+        self, violations: dict[str, any], sprint_name: str = None
+    ) -> str:
+        """Format WIP violations into a readable report."""
+        if not violations or violations.get("total_violations", 0) == 0:
+            return (
+                f"No WIP limit violations found"
+                f"{' for sprint ' + sprint_name if sprint_name else ''}."
+            )
+
+        summary = self._get_wip_violation_summary(violations)
+        report = []
+
+        header = "WIP Limit Violations Report"
+        if sprint_name:
+            header += f" - {sprint_name}"
+        report.append(f"\n=== {header} ===")
+
+        report.append(f"Total Violations: {summary['total_violations']}")
+        report.append(
+            f"Average Violation Duration:"
+            f" {summary['average_violation_duration']:.1f} days"
+        )
+
+        if summary["longest_violation"]["status"]:
+            report.append(
+                f"Longest Violation: "
+                f"{summary['longest_violation']['duration']} days in "
+                f"{summary['longest_violation']['status']} "
+                f"({summary['longest_violation']['issue_key']})"
+            )
+
+        report.append("\n=== Violations by Status ===")
+
+        for status, data in summary["status_breakdown"].items():
+            report.append(f"\n{status}:")
+            report.append(f"  Violation Count: {data['violation_count']}")
+            report.append(f"  Average Duration: {data['average_duration']:.1f} days")
+            report.append(f"  Longest Duration: {data['longest_duration']} days")
+
+            # Show individual violations for this status
+            status_violations = violations["violations_by_status"][status]["issues"]
+            if status_violations:
+                report.append("  Issues:")
+                for issue in status_violations[:5]:  # Show first 5
+                    report.append(
+                        f"    {issue['key']}: {issue['duration_days']} days"
+                        f" - {issue['summary'][:50]}..."
+                    )
+
+        return "\n".join(report)
