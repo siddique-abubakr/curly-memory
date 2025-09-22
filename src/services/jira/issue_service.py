@@ -382,7 +382,6 @@ class IssueService:
                 )
                 self.logger.debug(f"Got the Violation periods for {issue.key}")
                 self.logger.debug(wip_violation_periods)
-                
 
                 for violation in wip_violation_periods:
                     status_name = violation["status"]
@@ -419,6 +418,57 @@ class IssueService:
                 )
 
         return dict(violations)
+
+    def get_prod_bug_analysis(self, issues: list[Issue]) -> dict[str, any]:
+        """Analyze prod bug tickets by priority distribution."""
+        prod_bugs = []
+
+        for issue in issues:
+            try:
+                # Check if issue has prod bug label
+                if self._is_prod_bug(issue):
+                    prod_bugs.append(issue)
+            except Exception as e:
+                self.logger.error(f"Error checking prod bug for issue {getattr(issue, 'key', 'Unknown')}: {e}")
+
+        # Calculate priority distribution for prod bugs
+        priority_distribution = self.calculate_priority_distribution(prod_bugs)
+
+        return {
+            "total_prod_bugs": len(prod_bugs),
+            "priority_distribution": priority_distribution,
+            "prod_bug_issues": [
+                {
+                    "key": issue.key,
+                    "summary": issue.fields.summary,
+                    "priority": getattr(issue.fields.priority, 'name', 'Unknown') if hasattr(issue.fields, 'priority') and issue.fields.priority else 'Unknown',
+                    "priority_category": self.classify_priority(
+                        getattr(issue.fields.priority, 'name', '') if hasattr(issue.fields, 'priority') and issue.fields.priority else ''
+                    )
+                }
+                for issue in prod_bugs
+            ]
+        }
+
+    def _is_prod_bug(self, issue: Issue) -> bool:
+        """Check if issue has prod bug label."""
+        try:
+            # Check regular labels field
+            if hasattr(issue.fields, 'labels') and issue.fields.labels:
+                for label in issue.fields.labels:
+                    if 'prod' in label.lower() and 'bug' in label.lower():
+                        return True
+
+            # Check custom fields that might contain prod bug labels
+            if hasattr(issue.fields, 'customfield_10043') and issue.fields.customfield_10043:
+                label_value = issue.fields.customfield_10043
+                if isinstance(label_value, str) and 'prod' in label_value.lower() and 'bug' in label_value.lower():
+                    return True
+
+            return False
+        except Exception as e:
+            self.logger.error(f"Error checking prod bug label for issue {getattr(issue, 'key', 'Unknown')}: {e}")
+            return False
 
     def _issue_has_wip_violations(self, issue: Issue, wip_labels: dict) -> bool:
         """Check if issue has any WIP violation labels."""

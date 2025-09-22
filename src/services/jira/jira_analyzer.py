@@ -139,6 +139,10 @@ class JiraAnalyzer:
         wip_violations = self.issue_service.get_wip_violations_for_issues(issues)
         result["wip_violations"] = wip_violations
 
+        # Always include prod bug analysis (reuse existing issues)
+        prod_bug_analysis = self.issue_service.get_prod_bug_analysis(issues)
+        result["prod_bugs"] = prod_bug_analysis
+
         return result
 
     def analyze_resolution_metrics_only(
@@ -170,6 +174,229 @@ class JiraAnalyzer:
     def generate_status_report(self, results: dict[str, any]) -> str:
         """Generate report focused on status metrics."""
         return self.generate_report(results, "status_metrics")
+
+    def analyze_prod_bugs_only(
+        self,
+        project: str,
+        scrum_board_ids: list[int],
+        sprint_filter_config: dict[str, any] = None,
+    ) -> dict[str, any]:
+        """Analyze project focusing only on prod bug metrics."""
+        self.logger.debug(f"Starting prod bug analysis for project: {project}")
+
+        results = {
+            "project": project,
+            "boards": [],
+            "total_prod_bugs": 0,
+            "filter_config_used": sprint_filter_config,
+        }
+
+        try:
+            # Get boards for the project
+            boards = self.board_service.get_boards_for_project(project)
+            scrum_boards = self.board_service.filter_scrum_boards(
+                boards, scrum_board_ids
+            )
+
+            for board in scrum_boards:
+                board_result = self._analyze_board_prod_bugs(
+                    board, project, sprint_filter_config
+                )
+                results["boards"].append(board_result)
+                results["total_prod_bugs"] += board_result.get(
+                    "total_prod_bugs", 0
+                )
+
+        except Exception as e:
+            self.logger.error(f"Error analyzing prod bugs for project {project}: {e}")
+
+        return results
+
+    def _analyze_board_prod_bugs(
+        self, board: any, project: str, sprint_filter_config: dict[str, any] = None
+    ) -> dict[str, any]:
+        """Analyze prod bugs for a single board."""
+        self.logger.debug(
+            f"Analyzing prod bugs for board: {board.name} (ID: {board.id})"
+        )
+
+        board_result = {
+            "board_info": self.board_service.get_board_info(board),
+            "sprints": [],
+            "total_prod_bugs": 0,
+        }
+
+        try:
+            # Get sprints based on filter configuration
+            sprints = self.sprint_service.get_sprints_for_board(
+                board.id, sprint_filter_config
+            )
+
+            for sprint in sprints:
+                # Get issues for this sprint
+                issues = self.issue_service.get_issues_for_sprint(project, sprint.id)
+                sprint_prod_bugs = self.issue_service.get_prod_bug_analysis(issues)
+
+                sprint_info = self.sprint_service.get_sprint_info(sprint)
+                sprint_result = {
+                    "sprint_info": sprint_info,
+                    "prod_bugs": sprint_prod_bugs,
+                }
+
+                board_result["sprints"].append(sprint_result)
+                board_result["total_prod_bugs"] += sprint_prod_bugs.get(
+                    "total_prod_bugs", 0
+                )
+
+        except Exception as e:
+            self.logger.error(f"Error analyzing prod bugs for board {board.id}: {e}")
+
+        return board_result
+
+    def generate_prod_bugs_report(self, results: dict[str, any]) -> str:
+        """Generate report focused on prod bug analysis."""
+        report = []
+        report.append(
+            f"\n=== Prod Bug Analysis Report for Project: {results['project']} ==="
+        )
+        report.append(f"Total Prod Bugs: {results.get('total_prod_bugs', 0)}")
+
+        # Add filter configuration info
+        self._add_filter_config_to_report(report, results)
+
+        if not results.get("boards"):
+            report.append(f"\nNo boards found for project {results['project']}")
+            return "\n".join(report)
+
+        report.append("\n=== Board Details ===")
+        for board_result in results["boards"]:
+            board_info = board_result["board_info"]
+            report.append(f"\nBoard: {board_info['name']} (ID: {board_info['id']})")
+            report.append(f"Total Prod Bugs: {board_result.get('total_prod_bugs', 0)}")
+
+            for sprint_result in board_result["sprints"]:
+                sprint_info = sprint_result["sprint_info"]
+                prod_bugs = sprint_result.get("prod_bugs", {})
+
+                if prod_bugs.get("total_prod_bugs", 0) > 0:
+                    priority_dist = prod_bugs["priority_distribution"]
+                    report.append(
+                        f"\n  Sprint: {sprint_info['name']} - "
+                        f"{prod_bugs['total_prod_bugs']} prod bugs"
+                    )
+                    report.append(
+                        f"\n  Start: {sprint_info['start_date']} - "
+                        f"Complete: {sprint_info['complete_date']}"
+                    )
+                    report.append(f"    Critical: {priority_dist['critical']}")
+                    report.append(f"    Major: {priority_dist['major']}")
+                    report.append(f"    Minor: {priority_dist['minor']}")
+
+                    # Show individual prod bugs
+                    if prod_bugs.get("prod_bug_issues"):
+                        report.append("    Issues:")
+                        for bug in prod_bugs["prod_bug_issues"][:5]:  # Show first 5
+                            report.append(
+                                f"      {bug['key']} ({bug['priority']}): "
+                                f"{bug['summary'][:50]}..."
+                            )
+                else:
+                    report.append(f"\n  Sprint: {sprint_info['name']} - No prod bugs")
+
+        return "\n".join(report)
+
+    def generate_prod_bugs_quarterly_report(self, results: dict[str, any]) -> str:
+        """Generate quarterly prod bug report grouped by quarters."""
+        from datetime import datetime
+        from collections import defaultdict
+
+        report = []
+        report.append(
+            f"\n=== Quarterly Prod Bug Analysis Report for Project: {results['project']} ==="
+        )
+        report.append(f"Total Prod Bugs: {results.get('total_prod_bugs', 0)}")
+
+        # Add filter configuration info
+        self._add_filter_config_to_report(report, results)
+
+        if not results.get("boards"):
+            report.append(f"\nNo boards found for project {results['project']}")
+            return "\n".join(report)
+
+        # Group sprints by quarter
+        quarterly_data = defaultdict(lambda: {
+            "total_prod_bugs": 0,
+            "priority_distribution": {"critical": 0, "major": 0, "minor": 0},
+            "sprints": []
+        })
+
+        for board_result in results["boards"]:
+            for sprint_result in board_result["sprints"]:
+                sprint_info = sprint_result["sprint_info"]
+                prod_bugs = sprint_result.get("prod_bugs", {})
+
+                if not sprint_info.get("start_date"):
+                    continue
+
+                try:
+                    # Parse sprint start date and determine quarter
+                    start_date = datetime.fromisoformat(
+                        sprint_info["start_date"].replace("Z", "+00:00")
+                    )
+                    year = start_date.year
+                    quarter = (start_date.month - 1) // 3 + 1
+                    quarter_key = f"Q{quarter} {year}"
+
+                    # Add data to quarterly summary
+                    quarterly_data[quarter_key]["total_prod_bugs"] += prod_bugs.get(
+                        "total_prod_bugs", 0
+                    )
+
+                    if prod_bugs.get("priority_distribution"):
+                        priority_dist = prod_bugs["priority_distribution"]
+                        q_priority = quarterly_data[quarter_key]["priority_distribution"]
+                        q_priority["critical"] += priority_dist.get("critical", 0)
+                        q_priority["major"] += priority_dist.get("major", 0)
+                        q_priority["minor"] += priority_dist.get("minor", 0)
+
+                    quarterly_data[quarter_key]["sprints"].append({
+                        "sprint_name": sprint_info["name"],
+                        "prod_bugs": prod_bugs.get("total_prod_bugs", 0),
+                        "priority_dist": prod_bugs.get("priority_distribution", {})
+                    })
+
+                except Exception as e:
+                    self.logger.error(f"Error parsing sprint date: {e}")
+                    continue
+
+        # Sort quarters chronologically
+        sorted_quarters = sorted(
+            quarterly_data.keys(),
+            key=lambda x: (int(x.split()[-1]), int(x.split()[0][1:]))
+        )
+
+        report.append("\n=== Quarterly Summary ===")
+        for quarter in sorted_quarters:
+            data = quarterly_data[quarter]
+            report.append(f"\n{quarter}:")
+            report.append(f"  Total Prod Bugs: {data['total_prod_bugs']}")
+
+            if data["total_prod_bugs"] > 0:
+                priority_dist = data["priority_distribution"]
+                report.append(f"  Critical: {priority_dist['critical']}")
+                report.append(f"  Major: {priority_dist['major']}")
+                report.append(f"  Minor: {priority_dist['minor']}")
+
+                # Show sprint breakdown
+                report.append("  Sprints:")
+                for sprint in data["sprints"]:
+                    if sprint["prod_bugs"] > 0:
+                        report.append(
+                            f"    {sprint['sprint_name']}: "
+                            f"{sprint['prod_bugs']} prod bugs"
+                        )
+
+        return "\n".join(report)
 
     def analyze_wip_violations_only(
         self,
@@ -235,11 +462,13 @@ class JiraAnalyzer:
                 sprint_wip_violations = (
                     self.issue_service.get_wip_violations_for_issues(issues)
                 )
+                sprint_prod_bugs = self.issue_service.get_prod_bug_analysis(issues)
 
                 sprint_info = self.sprint_service.get_sprint_info(sprint)
                 sprint_result = {
                     "sprint_info": sprint_info,
                     "wip_violations": sprint_wip_violations,
+                    "prod_bugs": sprint_prod_bugs,
                 }
 
                 board_result["sprints"].append(sprint_result)
@@ -503,6 +732,17 @@ class JiraAnalyzer:
                         f"      {status}: {data['violation_count']} "
                         f"violations (avg {data['average_duration']:.1f} days)"
                     )
+
+        # Add prod bugs if available
+        if sprint_result.get("prod_bugs"):
+            prod_bugs = sprint_result["prod_bugs"]
+            if prod_bugs.get("total_prod_bugs", 0) > 0:
+                priority_dist = prod_bugs["priority_distribution"]
+                report.append("    Prod Bug Analysis:")
+                report.append(f"      Total Prod Bugs: {prod_bugs['total_prod_bugs']}")
+                report.append(f"      Critical: {priority_dist['critical']}")
+                report.append(f"      Major: {priority_dist['major']}")
+                report.append(f"      Minor: {priority_dist['minor']}")
 
     def _get_wip_violation_summary(self, violations: dict[str, any]) -> dict[str, any]:
         """Generate summary statistics for WIP violations."""

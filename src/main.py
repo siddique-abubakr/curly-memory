@@ -46,11 +46,23 @@ def main():
             # logger.info(f"\n{status_report}")
 
             # Option 3: WIP Limit Violations only (uncomment to use)
-            wip_results = analyzer.analyze_wip_violations_only(
+            # wip_results = analyzer.analyze_wip_violations_only(
+            #     project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
+            # )
+            # wip_report = analyzer.generate_wip_violations_report(wip_results)
+            # logger.info(f"\n{wip_report}")
+
+            # Option 4: Prod Bug Analysis only (uncomment to use)
+            prod_bug_results = analyzer.analyze_prod_bugs_only(
                 project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
             )
-            wip_report = analyzer.generate_wip_violations_report(wip_results)
-            logger.info(f"\n{wip_report}")
+            # Standard prod bug report
+            # prod_bug_report = analyzer.generate_prod_bugs_report(prod_bug_results)
+            # logger.info(f"\n{prod_bug_report}")
+
+            # Quarterly prod bug report
+            quarterly_report = analyzer.generate_prod_bugs_quarterly_report(prod_bug_results)
+            logger.info(f"\n{quarterly_report}")
 
     except Exception as e:
         logger.error(f"Application error: {e}")
