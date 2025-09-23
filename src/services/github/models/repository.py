@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import datetime
 from pydantic import BaseModel, Field, HttpUrl
 from enum import Enum
+from typing import Any
 
 from .base import GitHubUser
 
@@ -235,7 +236,7 @@ class Repository(BaseModel):
     network_count: int | None = Field(
         default=None, description="Number of repositories in the network"
     )
-    license: dict[str, any] | None = Field(
+    license: dict[str, Any] | None = Field(
         default=None, description="Repository license information"
     )
     organization: GitHubUser | None = Field(

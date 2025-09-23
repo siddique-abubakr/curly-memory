@@ -39,7 +39,9 @@ class GithubClient:
             self.logger = Logger.get_logger()
             self.base_url = "https://api.github.com"
             self.owner = constants.GITHUB_CONFIG.get("owner")
-            self.repo = constants.GITHUB_CONFIG.get("repo")
+            # For backward compatibility, try "repo" first, then use first from "repos"
+            repos = constants.GITHUB_CONFIG.get("repos", [])
+            self.repo = constants.GITHUB_CONFIG.get("repo") or (repos[0] if repos else None)
             self._initialized = True
 
     def _make_request(self, endpoint: str, params: dict = None) -> dict | list:

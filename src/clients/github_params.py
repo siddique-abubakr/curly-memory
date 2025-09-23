@@ -99,7 +99,7 @@ class CommitParams(BaseModel):
 
     class Config:
         use_enum_values = True
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "since": "2024-01-01T00:00:00Z",
                 "until": "2024-12-31T23:59:59Z",
@@ -139,7 +139,7 @@ class PullRequestParams(BaseModel):
 
     class Config:
         use_enum_values = True
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "state": "all",
                 "sort": "updated",
@@ -193,7 +193,7 @@ class IssueParams(BaseModel):
 
     class Config:
         use_enum_values = True
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "state": "all",
                 "labels": "bug,enhancement",
@@ -218,7 +218,7 @@ class ContributorParams(BaseModel):
     )
 
     class Config:
-        schema_extra = {"example": {"anon": True, "per_page": 100, "page": 1}}
+        json_schema_extra = {"example": {"anon": True, "per_page": 100, "page": 1}}
 
 
 class BranchParams(BaseModel):
@@ -236,7 +236,7 @@ class BranchParams(BaseModel):
     )
 
     class Config:
-        schema_extra = {"example": {"protected": True, "per_page": 50, "page": 1}}
+        json_schema_extra = {"example": {"protected": True, "per_page": 50, "page": 1}}
 
 
 class ReleaseParams(BaseModel):
@@ -250,7 +250,7 @@ class ReleaseParams(BaseModel):
     )
 
     class Config:
-        schema_extra = {"example": {"per_page": 100, "page": 1}}
+        json_schema_extra = {"example": {"per_page": 100, "page": 1}}
 
 
 class PullRequestCommitsParams(BaseModel):
@@ -264,7 +264,7 @@ class PullRequestCommitsParams(BaseModel):
     )
 
     class Config:
-        schema_extra = {"example": {"per_page": 100, "page": 1}}
+        json_schema_extra = {"example": {"per_page": 100, "page": 1}}
 
 
 class PullRequestReviewsParams(BaseModel):
@@ -278,4 +278,4 @@ class PullRequestReviewsParams(BaseModel):
     )
 
     class Config:
-        schema_extra = {"example": {"per_page": 50, "page": 1}}
+        json_schema_extra = {"example": {"per_page": 50, "page": 1}}

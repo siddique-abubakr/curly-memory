@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import datetime
 from pydantic import BaseModel, Field, HttpUrl
 from enum import Enum
+from typing import Any
 
 from .base import GitHubUser, GitHubLabel, GitHubMilestone, GitHubBranch
 from .repository import Repository
@@ -112,12 +113,12 @@ class PullRequest(BaseModel):
     assignee: GitHubUser | None = Field(default=None, description="Assigned user")
     assignees: list[GitHubUser] = Field(description="All assigned users")
     requested_reviewers: list[GitHubUser] = Field(description="Requested reviewers")
-    requested_teams: list[dict[str, any]] = Field(
+    requested_teams: list[dict[str, Any]] = Field(
         description="Requested reviewer teams"
     )
     head: PullRequestHead = Field(description="Head branch information")
     base: PullRequestBase = Field(description="Base branch information")
-    _links: PullRequestLinks = Field(alias="_links", description="Hypermedia links")
+    links: PullRequestLinks = Field(alias="_links", description="Hypermedia links")
     author_association: str = Field(description="Author's association with repository")
     auto_merge: AutoMerge | None = Field(
         default=None, description="Auto merge settings"
@@ -173,7 +174,7 @@ class PullRequestReview(BaseModel):
     html_url: HttpUrl = Field(description="GitHub URL for review")
     pull_request_url: HttpUrl = Field(description="API URL for associated pull request")
     author_association: str = Field(description="Author's association with repository")
-    _links: dict[str, dict[str, str]] = Field(
+    links: dict[str, dict[str, str]] = Field(
         alias="_links", description="Hypermedia links"
     )
     submitted_at: datetime | None = Field(

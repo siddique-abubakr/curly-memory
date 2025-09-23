@@ -4,11 +4,15 @@ Base GitHub API models used across multiple endpoints.
 These models represent common GitHub entities that appear in various API responses.
 """
 
+from __future__ import annotations
 from datetime import datetime
 from pydantic import BaseModel, Field, HttpUrl
 from enum import Enum
 
-from .repository import Repository
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .repository import Repository
 
 
 class UserType(str, Enum):
@@ -100,7 +104,7 @@ class GitHubBranch(BaseModel):
     ref: str = Field(description="Branch name")
     sha: str = Field(description="Commit SHA of branch head")
     user: GitHubUser | None = Field(default=None, description="Branch owner")
-    repo: Repository | None = Field(
+    repo: "Repository | None" = Field(
         default=None, description="Repository containing branch"
     )
 

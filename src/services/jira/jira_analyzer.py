@@ -509,7 +509,10 @@ class JiraAnalyzer:
             for sprint_result in board_result["sprints"]:
                 sprint_info = sprint_result["sprint_info"]
                 wip_violations = sprint_result.get("wip_violations", {})
-
+                report.append(
+                    f"\n  Start: {sprint_info['start_date']} - "
+                    f"Complete: {sprint_info['complete_date']}"
+                )
                 if wip_violations.get("total_violations", 0) > 0:
                     wip_report = self._format_wip_violations_report(
                         wip_violations, sprint_info["name"]
@@ -707,9 +710,10 @@ class JiraAnalyzer:
                 report.append(f"      Min: {res_metrics['min_resolution_days']} days")
 
         # Add status timedeltas if available and requested
-        if not resolution_only and sprint_result.get("status_deltas"):
+        # Include status breakdown in resolution reports as it provides valuable context
+        if sprint_result.get("status_deltas") and not status_only:
             status_deltas: dict[str, timedelta] = sprint_result["status_deltas"]
-            report.append("    Status Time Metrics:")
+            report.append("    Status Time Breakdown:")
             for status, delta in status_deltas.items():
                 report.append(f"      {status}: {delta.days} days")
 

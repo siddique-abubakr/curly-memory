@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import datetime
 from pydantic import BaseModel, Field, HttpUrl
 from enum import Enum
+from typing import Any
 
 from .base import GitHubUser, GitHubLabel, GitHubMilestone
 from .repository import Repository
@@ -105,7 +106,7 @@ class Issue(BaseModel):
     repository: "Repository | None" = Field(
         default=None, description="Repository containing the issue"
     )
-    performed_via_github_app: dict[str, any] | None = Field(
+    performed_via_github_app: dict[str, Any] | None = Field(
         default=None, description="GitHub App that performed action"
     )
     reactions: IssueReactions | None = Field(
@@ -135,6 +136,6 @@ class IssueComment(BaseModel):
     reactions: IssueReactions | None = Field(
         default=None, description="Comment reactions"
     )
-    performed_via_github_app: dict[str, any] | None = Field(
+    performed_via_github_app: dict[str, Any] | None = Field(
         default=None, description="GitHub App that performed action"
     )
