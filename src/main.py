@@ -21,8 +21,8 @@ def main():
 
     try:
         # Initialize the analyzers
-        # jira_analyzer = JiraAnalyzer(jira)
-        github_analyzer = GitHubAnalyzer(github)
+        jira_analyzer = JiraAnalyzer(jira)
+        # github_analyzer = GitHubAnalyzer(github)
 
         # Analyze each project
         for project in PROJECTS_TO_INCLUDE:
@@ -53,28 +53,28 @@ def main():
             # logger.info(f"\n{status_report}")
 
             # Option 3: WIP Limit Violations only (uncomment to use)
-            # wip_results = analyzer.analyze_wip_violations_only(
+            # wip_results = jira_analyzer.analyze_wip_violations_only(
             #     project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
             # )
-            # wip_report = analyzer.generate_wip_violations_report(wip_results)
+            # wip_report = jira_analyzer.generate_wip_violations_report(wip_results)
             # logger.info(f"\n{wip_report}")
 
             # Option 4: Prod Bug Analysis only (uncomment to use)
-            # prod_bug_results = analyzer.analyze_prod_bugs_only(
-            #     project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
-            # )
+            prod_bug_results = jira_analyzer.analyze_prod_bugs_only(
+                project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
+            )
             # Standard prod bug report
-            # prod_bug_report = analyzer.generate_prod_bugs_report(prod_bug_results)
-            # logger.info(f"\n{prod_bug_report}")
+            prod_bug_report = jira_analyzer.generate_prod_bugs_report(prod_bug_results)
+            logger.info(f"\n{prod_bug_report}")
 
             # Quarterly prod bug report
             # quarterly_report = analyzer.generate_prod_bugs_quarterly_report(prod_bug_results)
             # logger.info(f"\n{quarterly_report}")
 
         # Option 5: GitHub PR Analysis (uncomment to use)
-        github_results = github_analyzer.analyze_repository_prs(GITHUB_CONFIG)
-        github_report = github_analyzer.generate_github_report(github_results)
-        logger.info(f"\n{github_report}")
+        # github_results = github_analyzer.analyze_repository_prs(GITHUB_CONFIG)
+        # github_report = github_analyzer.generate_github_report(github_results)
+        # logger.info(f"\n{github_report}")
 
         # Optional: Detailed GitHub report
         # github_detailed = github_analyzer.generate_github_detailed_report(github_results)

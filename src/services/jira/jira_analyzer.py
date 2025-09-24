@@ -234,7 +234,7 @@ class JiraAnalyzer:
 
             for sprint in sprints:
                 # Get issues for this sprint
-                issues = self.issue_service.get_issues_for_sprint(project, sprint.id)
+                issues = self.issue_service.get_bugs_for_sprint(project, sprint.id)
                 sprint_prod_bugs = self.issue_service.get_prod_bug_analysis(issues)
 
                 sprint_info = self.sprint_service.get_sprint_info(sprint)
@@ -523,7 +523,51 @@ class JiraAnalyzer:
                         f"\n  Sprint: {sprint_info['name']} - No WIP violations"
                     )
 
+            # Add violation categorization by actual duration from changelogs
+            report.append(self._generate_violation_categorization(board_result))
+
         return "\n".join(report)
+
+    def _generate_violation_categorization(self, board_result: dict[str, any]) -> str:
+        """Generate categorization of violations by duration from changelog analysis."""
+        categorization = []
+        categorization.append("\n=== Violation Duration Analysis ===")
+
+        # Collect all violations with their actual durations from changelogs
+        all_violations = []
+        for sprint_result in board_result["sprints"]:
+            wip_violations = sprint_result.get("wip_violations", {})
+            violations_by_status = wip_violations.get("violations_by_status", {})
+
+            for status, status_data in violations_by_status.items():
+                issues = status_data.get("issues", [])
+                for issue in issues:
+                    all_violations.append({
+                        "key": issue["key"],
+                        "summary": issue["summary"],
+                        "duration_days": issue["duration_days"],
+                        "status": status,
+                        "sprint": sprint_result["sprint_info"]["name"]
+                    })
+
+        if not all_violations:
+            categorization.append("No violations found")
+            return "\n".join(categorization)
+
+        # Sort violations by duration (longest first)
+        all_violations.sort(key=lambda x: x["duration_days"], reverse=True)
+
+        # Show all violations with their actual durations
+        categorization.append(f"\nTotal Violations: {len(all_violations)}")
+        categorization.append("\nViolations by Duration (Longest to Shortest):")
+
+        for violation in all_violations:
+            categorization.append(
+                f"  {violation['key']}: {violation['duration_days']} days in {violation['status']} "
+                f"- {violation['summary'][:60]}..."
+            )
+
+        return "\n".join(categorization)
 
     def generate_report(
         self, results: dict[str, any], report_type: str = "combined"

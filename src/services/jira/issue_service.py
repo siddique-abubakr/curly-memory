@@ -31,6 +31,22 @@ class IssueService:
         except Exception as e:
             self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
             return []
+    
+    def get_bugs_for_sprint(self, project: str, sprint_id: int) -> list[Issue]:
+        """Get all done bugs for a specific sprint."""
+        try:
+            jql = (
+                f"project = {project} AND "
+                f"sprint = {sprint_id} AND "
+                f"type = Bug"
+            )
+            issues = self.jira.search_issues(jql)
+            self.logger.debug(f"Found {len(issues)} bugs for sprint {sprint_id}")
+            issues = [Issue(**issue.raw) for issue in issues]
+            return issues
+        except Exception as e:
+            self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
+            return []
 
     def get_issues_for_sprint(self, project: str, sprint_id: int) -> list[Issue]:
         """Get all done bugs for a specific sprint."""
