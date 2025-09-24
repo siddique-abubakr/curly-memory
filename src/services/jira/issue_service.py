@@ -122,15 +122,20 @@ class IssueService:
         return dict(groups)
 
     def calculate_time_per_status(
-        self, status_changelogs: list[Changelog]
+        self, status_changelogs: list[Changelog], issue: Issue = None
     ) -> dict[str, timedelta]:
-        """Calculate the time in status"""
+        """Calculate the time in status including final status period"""
         status_deltas: dict[str, timedelta] = defaultdict(timedelta)
         try:
+            if not status_changelogs:
+                return status_deltas
+
             sorted_changelogs = sorted(
                 status_changelogs, key=lambda c: isoparse(c.created)
             )
-            for c in range(len(sorted_changelogs) - 2):
+
+            # Calculate time between consecutive status changes
+            for c in range(len(sorted_changelogs) - 1):
                 status_item: ChangelogItem = next(
                     (
                         it
@@ -139,11 +144,41 @@ class IssueService:
                     ),
                     None,
                 )
+                if not status_item:
+                    continue
+
                 from_status: str = status_item.from_id or status_item.from_string
+                if not from_status:
+                    continue
 
                 status_deltas[from_status] += isoparse(
                     sorted_changelogs[c + 1].created
                 ) - isoparse(sorted_changelogs[c].created)
+
+            # Handle the final status period if issue is provided
+            if issue and len(sorted_changelogs) > 0:
+                # Get the final status from the last changelog
+                last_changelog = sorted_changelogs[-1]
+                last_status_item = next(
+                    (
+                        it
+                        for it in last_changelog.items
+                        if it.field_id == "status"
+                    ),
+                    None,
+                )
+
+                if last_status_item:
+                    final_status = last_status_item.to_id or last_status_item.to_string
+                    if final_status:
+                        # Calculate time from last status change to issue update time
+                        last_change_time = isoparse(last_changelog.created)
+                        issue_end_time = isoparse(issue.fields.updated)
+                        final_status_duration = issue_end_time - last_change_time
+
+                        if final_status_duration.total_seconds() > 0:
+                            status_deltas[final_status] += final_status_duration
+
         except Exception as e:
             self.logger.error(f"Error while calculating time in status for issue {e}")
         return status_deltas
@@ -169,7 +204,7 @@ class IssueService:
 
                 # Filter for status changelogs only
                 status_changelogs = self.filter_status_changelogs(all_changelogs)
-                issue_status_times = self.calculate_time_per_status(status_changelogs)
+                issue_status_times = self.calculate_time_per_status(status_changelogs, issue)
 
                 # Collect times for each status across all issues
                 for status, time_spent in issue_status_times.items():
@@ -189,6 +224,44 @@ class IssueService:
                 avg_status_times[status] = total_time / len(times)
 
         return avg_status_times
+
+    def get_max_age_per_status(
+        self, issues: list[Issue], sprint: Sprint = None
+    ) -> dict[str, dict]:
+        """Returns the ticket with max age in each status for a sprint."""
+        max_age_per_status = {}
+
+        for issue in issues:
+            try:
+                # Get all changelogs for the issue
+                all_changelogs = self.get_issue_changelogs(issue.key)
+
+                # Filter by sprint dates if sprint is provided
+                if sprint:
+                    all_changelogs = self.filter_changelogs_by_sprint_dates(
+                        all_changelogs, sprint
+                    )
+
+                # Filter for status changelogs only
+                status_changelogs = self.filter_status_changelogs(all_changelogs)
+                issue_status_times = self.calculate_time_per_status(status_changelogs, issue)
+
+                # Check if this issue has the max time for each status
+                for status, time_spent in issue_status_times.items():
+                    if status not in max_age_per_status or time_spent > max_age_per_status[status]["duration"]:
+                        max_age_per_status[status] = {
+                            "issue_key": issue.key,
+                            "issue_summary": issue.fields.summary,
+                            "duration": time_spent,
+                            "duration_days": time_spent.days
+                        }
+
+            except Exception as e:
+                self.logger.error(
+                    f"Error processing issue {issue.key} for max age per status: {e}"
+                )
+
+        return max_age_per_status
 
     def get_issue_info(self, issue: Issue) -> dict[str, any]:
         """Get formatted issue information."""

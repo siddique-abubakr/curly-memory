@@ -1,5 +1,6 @@
 from datetime import timedelta
 from core.logger import Logger
+from core.enums import Status
 from .board_service import BoardService
 from .sprint_service import SprintService
 from .issue_service import IssueService
@@ -133,15 +134,19 @@ class JiraAnalyzer:
             average_time_in_status = self.issue_service.get_avg_time_per_status(
                 issues, sprint
             )
+            max_age_per_status = self.issue_service.get_max_age_per_status(
+                issues, sprint
+            )
             result["status_deltas"] = average_time_in_status
+            result["max_age_per_status"] = max_age_per_status
 
-        # Always include WIP limit violations (reuse existing issues)
-        wip_violations = self.issue_service.get_wip_violations_for_issues(issues)
-        result["wip_violations"] = wip_violations
+        # Include WIP limit violations and prod bug analysis for combined analysis only
+        if analysis_type == "combined":
+            wip_violations = self.issue_service.get_wip_violations_for_issues(issues)
+            result["wip_violations"] = wip_violations
 
-        # Always include prod bug analysis (reuse existing issues)
-        prod_bug_analysis = self.issue_service.get_prod_bug_analysis(issues)
-        result["prod_bugs"] = prod_bug_analysis
+            prod_bug_analysis = self.issue_service.get_prod_bug_analysis(issues)
+            result["prod_bugs"] = prod_bug_analysis
 
         return result
 
@@ -754,15 +759,26 @@ class JiraAnalyzer:
                 report.append(f"      Min: {res_metrics['min_resolution_days']} days")
 
         # Add status timedeltas if available and requested
-        # Include status breakdown in resolution reports as it provides valuable context
-        if sprint_result.get("status_deltas") and not status_only:
+        if sprint_result.get("status_deltas"):
             status_deltas: dict[str, timedelta] = sprint_result["status_deltas"]
-            report.append("    Status Time Breakdown:")
-            for status, delta in status_deltas.items():
-                report.append(f"      {status}: {delta.days} days")
+            if status_deltas:  # Only show if there are actually status deltas
+                report.append("    Average Status Time Breakdown:")
+                for status_id, delta in status_deltas.items():
+                    status_name = Status.get_status_name(status_id)
+                    report.append(f"      {status_name}: {delta.days} days (avg)")
 
-        # Add WIP violations if available
-        if sprint_result.get("wip_violations"):
+        # Add max age per status if available (status reports only)
+        if status_only and sprint_result.get("max_age_per_status"):
+            max_age_per_status = sprint_result["max_age_per_status"]
+            if max_age_per_status:
+                report.append("    Max Age per Status (Longest Duration Issues):")
+                for status_id, data in max_age_per_status.items():
+                    status_name = Status.get_status_name(status_id)
+                    report.append(f"      {status_name}: {data['issue_key']} - {data['duration_days']} days")
+                    report.append(f"        Summary: {data['issue_summary'][:60]}...")
+
+        # Add WIP violations if available (non-status reports only)
+        if not status_only and sprint_result.get("wip_violations"):
             wip_violations = sprint_result["wip_violations"]
             if wip_violations.get("total_violations", 0) > 0:
                 wip_summary = self._get_wip_violation_summary(wip_violations)
@@ -781,8 +797,8 @@ class JiraAnalyzer:
                         f"violations (avg {data['average_duration']:.1f} days)"
                     )
 
-        # Add prod bugs if available
-        if sprint_result.get("prod_bugs"):
+        # Add prod bugs if available (non-status reports only)
+        if not status_only and sprint_result.get("prod_bugs"):
             prod_bugs = sprint_result["prod_bugs"]
             if prod_bugs.get("total_prod_bugs", 0) > 0:
                 priority_dist = prod_bugs["priority_distribution"]
