@@ -25,7 +25,7 @@ def main():
         # github_analyzer = GitHubAnalyzer(github)
 
         # Analyze each project
-        for project in PROJECTS_TO_INCLUDE:  
+        for project in PROJECTS_TO_INCLUDE:
             logger.info(f"Processing project: {project}")
 
             status_results = jira_analyzer.analyze_status_metrics_only(

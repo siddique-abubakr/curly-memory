@@ -131,14 +131,14 @@ class JiraAnalyzer:
             result["metrics"] = detailed_metrics
 
         if analysis_type in ["combined", "status_metrics"]:
-            average_time_in_status = self.issue_service.get_avg_time_per_status(
+            comprehensive_metrics = self.issue_service.get_comprehensive_status_metrics(
                 issues, sprint
             )
-            max_age_per_status = self.issue_service.get_max_age_per_status(
-                issues, sprint
-            )
-            result["status_deltas"] = average_time_in_status
-            result["max_age_per_status"] = max_age_per_status
+            result["comprehensive_status_metrics"] = comprehensive_metrics
+
+            # Keep backward compatibility
+            result["status_deltas"] = comprehensive_metrics.get("average_times", {})
+            result["max_age_per_status"] = comprehensive_metrics.get("max_age_per_status", {})
 
         # Include WIP limit violations and prod bug analysis for combined analysis only
         if analysis_type == "combined":
@@ -767,8 +767,12 @@ class JiraAnalyzer:
                     status_name = Status.get_status_name(status_id)
                     report.append(f"      {status_name}: {delta.days} days (avg)")
 
-        # Add max age per status if available (status reports only)
-        if status_only and sprint_result.get("max_age_per_status"):
+        # Add comprehensive status metrics if available (status reports only)
+        if status_only and sprint_result.get("comprehensive_status_metrics"):
+            self._add_comprehensive_metrics_to_report(report, sprint_result["comprehensive_status_metrics"])
+
+        # Add max age per status if available (status reports only) - fallback for backward compatibility
+        elif status_only and sprint_result.get("max_age_per_status"):
             max_age_per_status = sprint_result["max_age_per_status"]
             if max_age_per_status:
                 report.append("    Max Age per Status (Longest Duration Issues):")
@@ -906,3 +910,103 @@ class JiraAnalyzer:
                     )
 
         return "\n".join(report)
+
+    def _add_comprehensive_metrics_to_report(self, report: list[str], metrics: dict[str, any]) -> None:
+        """Add comprehensive status metrics to report."""
+        from core.enums import Status
+
+        # Add statistical summary
+        if metrics.get("median_times") or metrics.get("percentile_90_times"):
+            report.append("    Statistical Analysis:")
+
+            # Combine average, median, and 90th percentile times
+            avg_times = metrics.get("average_times", {})
+            median_times = metrics.get("median_times", {})
+            p90_times = metrics.get("percentile_90_times", {})
+
+            all_statuses = set(avg_times.keys()) | set(median_times.keys()) | set(p90_times.keys())
+
+            for status_id in all_statuses:
+                status_name = Status.get_status_name(status_id)
+                report.append(f"      {status_name}:")
+
+                if status_id in avg_times:
+                    avg_days = avg_times[status_id].days
+                    report.append(f"        Average: {avg_days} days")
+
+                if status_id in median_times:
+                    median_days = median_times[status_id].days
+                    report.append(f"        Median: {median_days} days")
+
+                if status_id in p90_times:
+                    p90_days = p90_times[status_id].days
+                    report.append(f"        90th Percentile: {p90_days} days")
+
+        # Add max age per status
+        if metrics.get("max_age_per_status"):
+            max_age_per_status = metrics["max_age_per_status"]
+            if max_age_per_status:
+                report.append("    Longest Duration Issues by Status:")
+                for status_id, data in max_age_per_status.items():
+                    status_name = Status.get_status_name(status_id)
+                    report.append(f"      {status_name}: {data['issue_key']} - {data['duration_days']} days")
+                    report.append(f"        Summary: {data['issue_summary'][:60]}...")
+
+        # Add cycle time analysis
+        if metrics.get("cycle_time_analysis"):
+            cycle_analysis = metrics["cycle_time_analysis"]
+            cycle_stats = cycle_analysis.get("cycle_time_stats", {})
+            lead_stats = cycle_analysis.get("lead_time_stats", {})
+
+            if cycle_stats.get("count", 0) > 0:
+                report.append("    Cycle Time Analysis (In Progress → Done):")
+                report.append(f"      Issues analyzed: {cycle_stats['count']}")
+                report.append(f"      Average: {cycle_stats['average_days']:.1f} days")
+                report.append(f"      Median: {cycle_stats['median_days']:.1f} days")
+                report.append(f"      Range: {cycle_stats['min_days']:.1f} - {cycle_stats['max_days']:.1f} days")
+
+            if lead_stats.get("count", 0) > 0:
+                report.append("    Lead Time Analysis (Created → Done):")
+                report.append(f"      Issues analyzed: {lead_stats['count']}")
+                report.append(f"      Average: {lead_stats['average_days']:.1f} days")
+                report.append(f"      Median: {lead_stats['median_days']:.1f} days")
+
+        # Add status transition analysis
+        if metrics.get("status_transitions"):
+            transitions = metrics["status_transitions"]
+            if transitions.get("total_transitions", 0) > 0:
+                report.append("    Status Transition Analysis:")
+                report.append(f"      Total transitions: {transitions['total_transitions']}")
+                report.append(f"      Unique sequences: {transitions['unique_sequences']}")
+
+                # Show most common transition sequences
+                common_sequences = transitions.get("common_sequences", {})
+                if common_sequences:
+                    report.append("      Most common workflows:")
+                    for sequence, count in list(common_sequences.items())[:3]:
+                        report.append(f"        {sequence} ({count} times)")
+
+        # Add bottleneck analysis
+        if metrics.get("bottleneck_analysis"):
+            bottleneck_data = metrics["bottleneck_analysis"]
+            bottlenecks = bottleneck_data.get("bottleneck_analysis", {})
+
+            if bottlenecks:
+                report.append("    Workflow Bottleneck Analysis:")
+                top_bottlenecks = list(bottlenecks.keys())[:3]
+
+                for status in top_bottlenecks:
+                    data = bottlenecks[status]
+                    report.append(f"      {status}:")
+                    report.append(f"        Average time: {data['average_time_days']:.1f} days")
+                    report.append(f"        Issues: {data['issue_count']}")
+                    report.append(f"        Efficiency score: {data['efficiency_score']:.2f}")
+
+                # Add workflow efficiency summary
+                workflow_eff = bottleneck_data.get("workflow_efficiency", {})
+                if workflow_eff:
+                    report.append(f"      Overall workflow efficiency: {workflow_eff.get('overall_score', 0):.2f}")
+
+                    improvements = workflow_eff.get("areas_for_improvement", [])
+                    if improvements:
+                        report.append(f"      Areas for improvement: {', '.join(improvements)}")

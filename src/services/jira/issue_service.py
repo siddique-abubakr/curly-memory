@@ -1,9 +1,11 @@
 from datetime import timedelta
 from dateutil.parser import isoparse
-from collections import defaultdict
+from collections import defaultdict, Counter
+from statistics import median, quantiles
+from typing import Dict, List, Optional, Tuple
 
 from core.logger import Logger
-from core.enums import WIPLabels
+from core.enums import WIPLabels, Status
 from services.jira.models import Issue
 from services.jira.models.sprint import Sprint
 from services.jira.models.tracking import Changelog, ChangelogItem
@@ -15,6 +17,14 @@ class IssueService:
     def __init__(self, jira_client):
         self.jira = jira_client
         self.logger = Logger.get_logger()
+
+    def get_normalized_status_id(self, changelog_item: ChangelogItem) -> Optional[str]:
+        """Get normalized status ID, preferring ID over string."""
+        return changelog_item.from_id or changelog_item.from_string
+
+    def get_normalized_status_to_id(self, changelog_item: ChangelogItem) -> Optional[str]:
+        """Get normalized status TO ID, preferring ID over string."""
+        return changelog_item.to_id or changelog_item.to_string
 
     def get_done_bugs_for_sprint(self, project: str, sprint_id: int) -> list[Issue]:
         """Get all done bugs for a specific sprint."""
@@ -113,7 +123,7 @@ class IssueService:
                 )
                 if not status_item:
                     continue
-                from_status = status_item.from_id or status_item.from_string
+                from_status = self.get_normalized_status_id(status_item)
                 if from_status is None:
                     continue
                 groups[from_status].append(cl)
@@ -147,7 +157,7 @@ class IssueService:
                 if not status_item:
                     continue
 
-                from_status: str = status_item.from_id or status_item.from_string
+                from_status: str = self.get_normalized_status_id(status_item)
                 if not from_status:
                     continue
 
@@ -169,7 +179,7 @@ class IssueService:
                 )
 
                 if last_status_item:
-                    final_status = last_status_item.to_id or last_status_item.to_string
+                    final_status = self.get_normalized_status_to_id(last_status_item)
                     if final_status:
                         # Calculate time from last status change to issue update time
                         last_change_time = isoparse(last_changelog.created)
@@ -262,6 +272,358 @@ class IssueService:
                 )
 
         return max_age_per_status
+
+    def get_median_time_per_status(
+        self, issues: list[Issue], sprint: Sprint = None
+    ) -> dict[str, timedelta]:
+        """Returns median time in status for the tickets of a sprint."""
+        all_status_times = defaultdict(list)
+
+        for issue in issues:
+            try:
+                all_changelogs = self.get_issue_changelogs(issue.key)
+                if sprint:
+                    all_changelogs = self.filter_changelogs_by_sprint_dates(all_changelogs, sprint)
+
+                status_changelogs = self.filter_status_changelogs(all_changelogs)
+                issue_status_times = self.calculate_time_per_status(status_changelogs, issue)
+
+                for status, time_spent in issue_status_times.items():
+                    all_status_times[status].append(time_spent)
+
+            except Exception as e:
+                self.logger.error(f"Error processing issue {issue.key} for median time per status: {e}")
+
+        median_status_times = {}
+        for status, times in all_status_times.items():
+            if times:
+                median_status_times[status] = timedelta(seconds=median([t.total_seconds() for t in times]))
+
+        return median_status_times
+
+    def get_percentile_time_per_status(
+        self, issues: list[Issue], sprint: Sprint = None, percentile: int = 90
+    ) -> dict[str, timedelta]:
+        """Returns specified percentile time in status for the tickets of a sprint."""
+        all_status_times = defaultdict(list)
+
+        for issue in issues:
+            try:
+                all_changelogs = self.get_issue_changelogs(issue.key)
+                if sprint:
+                    all_changelogs = self.filter_changelogs_by_sprint_dates(all_changelogs, sprint)
+
+                status_changelogs = self.filter_status_changelogs(all_changelogs)
+                issue_status_times = self.calculate_time_per_status(status_changelogs, issue)
+
+                for status, time_spent in issue_status_times.items():
+                    all_status_times[status].append(time_spent)
+
+            except Exception as e:
+                self.logger.error(f"Error processing issue {issue.key} for percentile time per status: {e}")
+
+        percentile_status_times = {}
+        for status, times in all_status_times.items():
+            if times:
+                time_seconds = [t.total_seconds() for t in times]
+                # Use quantiles to get the specified percentile
+                try:
+                    percentiles = quantiles(time_seconds, n=100)
+                    percentile_index = min(percentile - 1, len(percentiles) - 1)
+                    percentile_status_times[status] = timedelta(seconds=percentiles[percentile_index])
+                except:
+                    # Fallback for small datasets
+                    sorted_times = sorted(time_seconds)
+                    index = int(len(sorted_times) * percentile / 100.0)
+                    if index >= len(sorted_times):
+                        index = len(sorted_times) - 1
+                    percentile_status_times[status] = timedelta(seconds=sorted_times[index])
+
+        return percentile_status_times
+
+    def analyze_status_transitions(
+        self, issues: list[Issue], sprint: Sprint = None
+    ) -> dict[str, any]:
+        """Analyze status transition patterns for issues in a sprint."""
+        transitions = defaultdict(int)  # (from_status, to_status) -> count
+        transition_times = defaultdict(list)  # (from_status, to_status) -> [durations]
+        status_sequence_patterns = Counter()  # Full transition sequences
+
+        for issue in issues:
+            try:
+                all_changelogs = self.get_issue_changelogs(issue.key)
+                if sprint:
+                    all_changelogs = self.filter_changelogs_by_sprint_dates(all_changelogs, sprint)
+
+                status_changelogs = self.filter_status_changelogs(all_changelogs)
+                if not status_changelogs:
+                    continue
+
+                sorted_changelogs = sorted(status_changelogs, key=lambda c: isoparse(c.created))
+
+                # Track transition sequence for this issue
+                status_sequence = []
+
+                # Process consecutive status changes
+                for i in range(len(sorted_changelogs)):
+                    current_changelog = sorted_changelogs[i]
+                    status_item = next(
+                        (it for it in current_changelog.items if it.field_id == "status"), None
+                    )
+                    if not status_item:
+                        continue
+
+                    from_status = self.get_normalized_status_id(status_item)
+                    to_status = self.get_normalized_status_to_id(status_item)
+
+                    if from_status and to_status:
+                        # Add to sequence
+                        if not status_sequence or status_sequence[-1] != from_status:
+                            status_sequence.append(from_status)
+                        status_sequence.append(to_status)
+
+                        # Count transition
+                        transition_key = (from_status, to_status)
+                        transitions[transition_key] += 1
+
+                        # Calculate transition time if we have next status change
+                        if i < len(sorted_changelogs) - 1:
+                            next_changelog = sorted_changelogs[i + 1]
+                            transition_duration = isoparse(next_changelog.created) - isoparse(current_changelog.created)
+                            transition_times[transition_key].append(transition_duration)
+
+                # Store the full sequence pattern
+                if status_sequence:
+                    sequence_key = " → ".join([Status.get_status_name(s) for s in status_sequence])
+                    status_sequence_patterns[sequence_key] += 1
+
+            except Exception as e:
+                self.logger.error(f"Error analyzing transitions for issue {issue.key}: {e}")
+
+        # Calculate average transition times
+        avg_transition_times = {}
+        for transition_key, durations in transition_times.items():
+            if durations:
+                avg_duration = sum(durations, timedelta()) / len(durations)
+                avg_transition_times[transition_key] = avg_duration
+
+        return {
+            "total_transitions": sum(transitions.values()),
+            "transition_counts": dict(transitions),
+            "average_transition_times": avg_transition_times,
+            "common_sequences": dict(status_sequence_patterns.most_common(10)),
+            "unique_sequences": len(status_sequence_patterns)
+        }
+
+    def calculate_cycle_times(
+        self, issues: list[Issue], sprint: Sprint = None
+    ) -> dict[str, any]:
+        """Calculate end-to-end cycle times and lead times."""
+        cycle_times = []
+        lead_times = []
+        cycle_time_details = []
+
+        for issue in issues:
+            try:
+                all_changelogs = self.get_issue_changelogs(issue.key)
+                if sprint:
+                    all_changelogs = self.filter_changelogs_by_sprint_dates(all_changelogs, sprint)
+
+                status_changelogs = self.filter_status_changelogs(all_changelogs)
+                if not status_changelogs:
+                    continue
+
+                sorted_changelogs = sorted(status_changelogs, key=lambda c: isoparse(c.created))
+
+                # Find first "In Progress" and last "Done" status
+                first_in_progress = None
+                last_done = None
+
+                for changelog in sorted_changelogs:
+                    status_item = next(
+                        (it for it in changelog.items if it.field_id == "status"), None
+                    )
+                    if not status_item:
+                        continue
+
+                    to_status = self.get_normalized_status_to_id(status_item)
+                    to_status_name = Status.get_status_name(to_status) if to_status else ""
+
+                    # Mark first time entering "In Progress"
+                    if not first_in_progress and "In Progress" in to_status_name:
+                        first_in_progress = isoparse(changelog.created)
+
+                    # Mark last time entering "Done"
+                    if "Done" in to_status_name:
+                        last_done = isoparse(changelog.created)
+
+                # Calculate cycle time (In Progress to Done)
+                if first_in_progress and last_done and last_done > first_in_progress:
+                    cycle_time = last_done - first_in_progress
+                    cycle_times.append(cycle_time)
+
+                    cycle_time_details.append({
+                        "issue_key": issue.key,
+                        "issue_summary": issue.fields.summary,
+                        "cycle_time_days": cycle_time.days,
+                        "start_date": first_in_progress.isoformat(),
+                        "end_date": last_done.isoformat()
+                    })
+
+                # Calculate lead time (Created to Done)
+                if last_done:
+                    created_date = isoparse(issue.fields.created)
+                    lead_time = last_done - created_date
+                    lead_times.append(lead_time)
+
+            except Exception as e:
+                self.logger.error(f"Error calculating cycle time for issue {issue.key}: {e}")
+
+        # Calculate statistics
+        cycle_time_stats = {}
+        if cycle_times:
+            cycle_seconds = [ct.total_seconds() for ct in cycle_times]
+            cycle_time_stats = {
+                "count": len(cycle_times),
+                "average_days": sum(cycle_times, timedelta()).total_seconds() / len(cycle_times) / 86400,
+                "median_days": median(cycle_seconds) / 86400,
+                "min_days": min(cycle_seconds) / 86400,
+                "max_days": max(cycle_seconds) / 86400
+            }
+
+        lead_time_stats = {}
+        if lead_times:
+            lead_seconds = [lt.total_seconds() for lt in lead_times]
+            lead_time_stats = {
+                "count": len(lead_times),
+                "average_days": sum(lead_times, timedelta()).total_seconds() / len(lead_times) / 86400,
+                "median_days": median(lead_seconds) / 86400,
+                "min_days": min(lead_seconds) / 86400,
+                "max_days": max(lead_seconds) / 86400
+            }
+
+        return {
+            "cycle_time_stats": cycle_time_stats,
+            "lead_time_stats": lead_time_stats,
+            "cycle_time_details": sorted(cycle_time_details, key=lambda x: x["cycle_time_days"], reverse=True)
+        }
+
+    def analyze_workflow_bottlenecks(
+        self, issues: list[Issue], sprint: Sprint = None
+    ) -> dict[str, any]:
+        """Identify workflow bottlenecks based on time spent in each status."""
+        status_time_data = defaultdict(list)
+        total_time_per_issue = {}
+
+        for issue in issues:
+            try:
+                all_changelogs = self.get_issue_changelogs(issue.key)
+                if sprint:
+                    all_changelogs = self.filter_changelogs_by_sprint_dates(all_changelogs, sprint)
+
+                status_changelogs = self.filter_status_changelogs(all_changelogs)
+                issue_status_times = self.calculate_time_per_status(status_changelogs, issue)
+
+                issue_total_time = sum(issue_status_times.values(), timedelta())
+                if issue_total_time.total_seconds() > 0:
+                    total_time_per_issue[issue.key] = issue_total_time
+
+                for status, time_spent in issue_status_times.items():
+                    status_time_data[status].append({
+                        "issue_key": issue.key,
+                        "time_spent": time_spent,
+                        "days": time_spent.days
+                    })
+
+            except Exception as e:
+                self.logger.error(f"Error analyzing bottlenecks for issue {issue.key}: {e}")
+
+        # Calculate bottleneck metrics
+        bottlenecks = {}
+        for status, time_data in status_time_data.items():
+            if not time_data:
+                continue
+
+            times = [item["time_spent"] for item in time_data]
+            time_seconds = [t.total_seconds() for t in times]
+
+            status_name = Status.get_status_name(status)
+            bottlenecks[status_name] = {
+                "issue_count": len(time_data),
+                "total_time_days": sum(times, timedelta()).days,
+                "average_time_days": sum(times, timedelta()).total_seconds() / len(times) / 86400,
+                "median_time_days": median(time_seconds) / 86400,
+                "max_time_days": max(time_seconds) / 86400,
+                "longest_issue": max(time_data, key=lambda x: x["time_spent"])["issue_key"],
+                "efficiency_score": self._calculate_efficiency_score(times)
+            }
+
+        # Rank by average time (potential bottlenecks)
+        sorted_bottlenecks = dict(sorted(
+            bottlenecks.items(),
+            key=lambda x: x[1]["average_time_days"],
+            reverse=True
+        ))
+
+        return {
+            "bottleneck_analysis": sorted_bottlenecks,
+            "top_bottlenecks": list(sorted_bottlenecks.keys())[:3],
+            "total_issues_analyzed": len(total_time_per_issue),
+            "workflow_efficiency": self._calculate_workflow_efficiency(bottlenecks)
+        }
+
+    def _calculate_efficiency_score(self, times: list[timedelta]) -> float:
+        """Calculate efficiency score based on time variance (lower is better)."""
+        if len(times) < 2:
+            return 1.0
+
+        time_seconds = [t.total_seconds() for t in times]
+        avg_time = sum(time_seconds) / len(time_seconds)
+
+        if avg_time == 0:
+            return 1.0
+
+        variance = sum((t - avg_time) ** 2 for t in time_seconds) / len(time_seconds)
+        std_dev = variance ** 0.5
+        coefficient_of_variation = std_dev / avg_time
+
+        # Lower coefficient of variation = higher efficiency (0-1 scale)
+        return max(0, 1 - min(coefficient_of_variation, 1))
+
+    def _calculate_workflow_efficiency(self, bottlenecks: dict) -> dict:
+        """Calculate overall workflow efficiency metrics."""
+        if not bottlenecks:
+            return {"overall_score": 0, "areas_for_improvement": []}
+
+        efficiency_scores = [data["efficiency_score"] for data in bottlenecks.values()]
+        overall_efficiency = sum(efficiency_scores) / len(efficiency_scores)
+
+        # Identify areas for improvement (low efficiency scores)
+        improvement_areas = [
+            status for status, data in bottlenecks.items()
+            if data["efficiency_score"] < 0.7
+        ]
+
+        return {
+            "overall_score": overall_efficiency,
+            "areas_for_improvement": improvement_areas,
+            "most_efficient_status": max(bottlenecks.keys(), key=lambda k: bottlenecks[k]["efficiency_score"]) if bottlenecks else None,
+            "least_efficient_status": min(bottlenecks.keys(), key=lambda k: bottlenecks[k]["efficiency_score"]) if bottlenecks else None
+        }
+
+    def get_comprehensive_status_metrics(
+        self, issues: list[Issue], sprint: Sprint = None
+    ) -> dict[str, any]:
+        """Get comprehensive status metrics including all analysis types."""
+        return {
+            'average_times': self.get_avg_time_per_status(issues, sprint),
+            'median_times': self.get_median_time_per_status(issues, sprint),
+            'percentile_90_times': self.get_percentile_time_per_status(issues, sprint, 90),
+            'max_age_per_status': self.get_max_age_per_status(issues, sprint),
+            'status_transitions': self.analyze_status_transitions(issues, sprint),
+            'cycle_time_analysis': self.calculate_cycle_times(issues, sprint),
+            'bottleneck_analysis': self.analyze_workflow_bottlenecks(issues, sprint)
+        }
 
     def get_issue_info(self, issue: Issue) -> dict[str, any]:
         """Get formatted issue information."""
@@ -564,7 +926,9 @@ class IssueService:
         try:
             # Check if the WIP custom field has any of the violation labels
             if issue.fields.customfield_10043:
-                return True
+                # Check if the value matches any of the WIP violation labels
+                field_value = str(issue.fields.customfield_10043)
+                return any(label in field_value for label in wip_labels.keys())
 
             return False
         except Exception as e:
