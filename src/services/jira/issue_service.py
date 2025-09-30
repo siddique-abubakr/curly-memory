@@ -70,6 +70,102 @@ class IssueService:
             self.logger.error(f"Error fetching issues for sprint {sprint_id}: {e}")
             return []
 
+    def get_all_issues_for_board(self, project: str, board_id: int, date_filter: dict = None) -> list[Issue]:
+        """Get all issues for a board (including Kanban boards without sprints).
+
+        Args:
+            project: Project key
+            board_id: Board ID
+            date_filter: Optional date filter with 'start_date' and 'end_date'
+
+        Returns:
+            List of issues for the board
+        """
+        try:
+            # Use Jira Agile API to get all issues from a board
+            # This works for both Scrum and Kanban boards
+            self.logger.debug(f"Fetching issues for board {board_id} using Jira Agile API")
+
+            # Build JQL for date filtering
+            jql = None
+            if date_filter and date_filter.get("enabled"):
+                jql_parts = []
+                start_date = date_filter.get("start_date")
+                end_date = date_filter.get("end_date")
+
+                if start_date:
+                    start_str = start_date.strftime("%Y-%m-%d")
+                    jql_parts.append(f"created >= '{start_str}'")
+
+                if end_date:
+                    end_str = end_date.strftime("%Y-%m-%d")
+                    jql_parts.append(f"created <= '{end_str}'")
+
+                jql = " AND ".join(jql_parts) if jql_parts else None
+
+            # Use Agile API endpoint: GET /rest/agile/1.0/board/{boardId}/issue
+            # The python-jira library doesn't have a direct method, so we use search_issues
+            # with the internal board filtering that happens via the API
+
+            # Get board to find its filter
+            board = self.jira.boards(board_id)
+
+            # Try to get the board's filter/configuration
+            if hasattr(board, 'filter') and board.filter:
+                # Board has a filter, get issues using that filter
+                filter_id = board.filter.id if hasattr(board.filter, 'id') else None
+                if filter_id:
+                    board_jql = f"filter = {filter_id}"
+                    if jql:
+                        board_jql = f"({board_jql}) AND ({jql})"
+
+                    issues = self.jira.search_issues(board_jql, maxResults=1000)
+                    self.logger.debug(f"Found {len(issues)} issues for board {board_id} using filter {filter_id}")
+                else:
+                    # No filter ID, fall back to project
+                    board_jql = f"project = {project}"
+                    if jql:
+                        board_jql = f"{board_jql} AND {jql}"
+
+                    issues = self.jira.search_issues(board_jql, maxResults=1000)
+                    self.logger.debug(f"Found {len(issues)} issues for project {project}")
+            else:
+                # Board has no filter, use project-based query
+                board_jql = f"project = {project}"
+                if jql:
+                    board_jql = f"{board_jql} AND {jql}"
+
+                issues = self.jira.search_issues(board_jql, maxResults=1000)
+                self.logger.debug(f"Found {len(issues)} issues for project {project}")
+
+            issues = [Issue(**issue.raw) for issue in issues]
+            return issues
+
+        except Exception as e:
+            self.logger.error(f"Error fetching issues for board {board_id}: {e}")
+            # Fallback to simple project query
+            try:
+                jql = f"project = {project}"
+                if date_filter and date_filter.get("enabled"):
+                    start_date = date_filter.get("start_date")
+                    end_date = date_filter.get("end_date")
+
+                    if start_date:
+                        start_str = start_date.strftime("%Y-%m-%d")
+                        jql += f" AND created >= '{start_str}'"
+
+                    if end_date:
+                        end_str = end_date.strftime("%Y-%m-%d")
+                        jql += f" AND created <= '{end_str}'"
+
+                issues = self.jira.search_issues(jql, maxResults=1000)
+                self.logger.debug(f"Found {len(issues)} issues for project {project} (fallback)")
+                issues = [Issue(**issue.raw) for issue in issues]
+                return issues
+            except Exception as fallback_error:
+                self.logger.error(f"Error in fallback query for board {board_id}: {fallback_error}")
+                return []
+
     def get_issue_changelogs(self, issue_key: str) -> list[Changelog]:
         """Get issue changelog/history"""
         try:

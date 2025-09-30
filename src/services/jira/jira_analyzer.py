@@ -4,6 +4,7 @@ from core.enums import Status
 from .board_service import BoardService
 from .sprint_service import SprintService
 from .issue_service import IssueService
+from .cycle_time_analyzer import CycleTimeAnalyzer
 
 
 class JiraAnalyzer:
@@ -17,6 +18,7 @@ class JiraAnalyzer:
         self.board_service = BoardService(jira_client)
         self.sprint_service = SprintService(jira_client)
         self.issue_service = IssueService(jira_client)
+        self.cycle_time_analyzer = CycleTimeAnalyzer(jira_client)
 
     def analyze_project(
         self,
@@ -771,7 +773,8 @@ class JiraAnalyzer:
         if status_only and sprint_result.get("comprehensive_status_metrics"):
             self._add_comprehensive_metrics_to_report(report, sprint_result["comprehensive_status_metrics"])
 
-        # Add max age per status if available (status reports only) - fallback for backward compatibility
+        # Add max age per status if available (status reports only)
+        # - fallback for backward compatibility
         elif status_only and sprint_result.get("max_age_per_status"):
             max_age_per_status = sprint_result["max_age_per_status"]
             if max_age_per_status:
@@ -1010,3 +1013,28 @@ class JiraAnalyzer:
                     improvements = workflow_eff.get("areas_for_improvement", [])
                     if improvements:
                         report.append(f"      Areas for improvement: {', '.join(improvements)}")
+
+    def analyze_cycle_time_only(
+        self,
+        project: str,
+        scrum_board_ids: list[int],
+        sprint_filter_config: dict[str, any] = None,
+        collection_frequency: str = "sprint_wise",
+        kanban_issues: list = None
+    ) -> dict[str, any]:
+        """Analyze project focusing only on cycle time metrics.
+
+        Args:
+            project: Project key to analyze
+            scrum_board_ids: List of board IDs (Scrum and/or Kanban)
+            sprint_filter_config: Sprint filtering configuration
+            collection_frequency: Frequency of collection ('sprint_wise', 'monthly', 'quarterly')
+            kanban_issues: Pre-fetched Kanban issues to integrate (optional)
+        """
+        return self.cycle_time_analyzer.analyze_cycle_time_metrics(
+            project, scrum_board_ids, sprint_filter_config, collection_frequency, kanban_issues
+        )
+
+    def generate_cycle_time_report(self, results: dict[str, any]) -> str:
+        """Generate report focused on cycle time analysis."""
+        return self.cycle_time_analyzer.generate_cycle_time_report(results)
