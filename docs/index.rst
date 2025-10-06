@@ -41,7 +41,7 @@ Quick Start
 .. code-block:: python
 
    from services.jira_analyzer import JiraAnalyzer
-   from clients.jira_client import jira
+   from clients.jira import jira
    from services.jira.models import Issue, Board
 
    # Initialize analyzer
