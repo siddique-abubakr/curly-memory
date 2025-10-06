@@ -30,8 +30,31 @@ class Status(Enum):
     BLOCKED = "10012"
     QA_REVIEW = "10020"
     DONE = "10013"
+    UNKNOWN_10043 = "10043"  # Additional status found in logs
+
+    @classmethod
+    def get_status_name(cls, status_id: str) -> str:
+        """Get readable status name from status ID"""
+        status_map = {
+            "10009": "To Do",
+            "10010": "In Progress",
+            "10012": "Blocked",
+            "10013": "Done",
+            "10017": "Review and Testing",
+            "10020": "QA Review",
+            "10043": "Unknown Status"  # Found in logs, needs clarification
+        }
+        return status_map.get(status_id, f"Status {status_id}")
 
 
 class CustomField(Enum):
     SPRINT = "customfield_10020"
-    LABELS = "customfield_10043"
+    WIP_LABELS = "customfield_10043"
+
+
+class WIPLabels(Enum):
+    TODO_LIMIT_EXCEEDED = "TodoLimitExceeded"
+    INPROGRESS_LIMIT_EXCEEDED = "InProgressLimitExceeded"
+    REVIEWANDTESTING_LIMIT_EXCEEDED = "ReviewAndTestingLimitExceeded"
+    BLOCKED_LIMIT_EXCEEDED = "BlockedLimitExceeded"
+    QAREVIEW_LIMIT_EXCEEDED = "QaReviewLimitExceeded"

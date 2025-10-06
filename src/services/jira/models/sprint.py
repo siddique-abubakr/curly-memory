@@ -13,7 +13,7 @@ class Sprint(BaseModel):
     origin_board_id: int = Field(
         validation_alias=AliasChoices("boardId", "originBoardId")
     )
-    goal: str
+    goal: str | None = Field(default=None)
 
     class Config:
         alias_generator = to_camel

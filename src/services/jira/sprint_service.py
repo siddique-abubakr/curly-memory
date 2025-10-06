@@ -54,8 +54,14 @@ class SprintService:
             return filtered_sprints
 
         except Exception as e:
-            self.logger.error(f"Error fetching sprints for board {board_id}: {e}")
-            return []
+            error_message = str(e)
+            # Check if this is a Kanban board (doesn't support sprints)
+            if "does not support sprints" in error_message.lower():
+                self.logger.info(f"Board {board_id} does not support sprints (Kanban board)")
+                return []
+            else:
+                self.logger.error(f"Error fetching sprints for board {board_id}: {e}")
+                return []
 
     def _apply_sprint_filters(
         self, sprints: list[Sprint], filter_config: dict[str, any]
@@ -74,6 +80,7 @@ class SprintService:
     ) -> bool:
         """Check if a sprint matches the filter criteria."""
         try:
+            self.logger.debug(f"Checking filters for sprint {sprint.name} ({sprint.id}) with config: {filter_config}")
             # Check specific sprint IDs first
             if filter_config.get("specific_sprint_ids"):
                 if sprint.id in filter_config["specific_sprint_ids"]:
@@ -115,16 +122,26 @@ class SprintService:
         """Check if sprint falls within the specified date range."""
         try:
             # Handle sprints with no end date
-            if not hasattr(sprint, "endDate") or not sprint.endDate:
+            if not hasattr(sprint, "end_date") or not sprint.end_date:
                 return filter_config.get("include_no_end_date", False)
 
-            sprint_start = datetime.fromisoformat(sprint.startDate)
-            sprint_end = datetime.fromisoformat(sprint.endDate)
+            # Handle 'Z' timezone suffix by converting to +00:00 format
+            sprint_start = datetime.fromisoformat(sprint.start_date.replace("Z", "+00:00"))
+            sprint_end = datetime.fromisoformat(sprint.end_date.replace("Z", "+00:00"))
 
             # Check if sprint overlaps with the date range
             # Sprint is included if it overlaps with the date range
             # (starts before the end date AND ends after the start date)
             overlaps = sprint_start <= end_date and sprint_end >= start_date
+
+            # Debug logging for sprint filtering
+            self.logger.debug(
+                f"Sprint {sprint.name} ({sprint.id}): "
+                f"start={sprint_start.isoformat()}, end={sprint_end.isoformat()}, "
+                f"filter_start={start_date.isoformat()}, filter_end={end_date.isoformat()}, "
+                f"overlaps={overlaps}"
+            )
+
             return overlaps
 
         except Exception as e:
@@ -147,8 +164,8 @@ class SprintService:
     def is_sprint_active(self, sprint: Sprint) -> bool:
         """Check if a sprint is currently active."""
         try:
-            start_date = datetime.fromisoformat(sprint.startDate)
-            end_date = datetime.fromisoformat(sprint.endDate)
+            start_date = datetime.fromisoformat(sprint.start_date)
+            end_date = datetime.fromisoformat(sprint.end_date)
             current_time = datetime.now(timezone.utc)
 
             is_active = start_date < current_time < end_date
