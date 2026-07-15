@@ -561,18 +561,51 @@ class JiraAnalyzer:
             categorization.append("No violations found")
             return "\n".join(categorization)
 
+        # Collect all violations with FULL ticket details from changelogs
+        all_violations = []
+        for sprint_result in board_result["sprints"]:
+            wip_violations = sprint_result.get("wip_violations", {})
+            violations_by_status = wip_violations.get("violations_by_status", {})
+
+            for status, status_data in violations_by_status.items():
+                issues = status_data.get("issues", [])
+                for issue in issues:
+                    all_violations.append({
+                        "key": issue["key"],
+                        "summary": issue["summary"],
+                        "duration_days": issue["duration_days"],
+                        "status": status,
+                        "sprint": sprint_result["sprint_info"]["name"],
+                        "violation_start": issue.get("violation_start"),
+                        "violation_end": issue.get("violation_end"),
+                        "priority": issue.get("priority", "Unknown"),
+                        "assignee": issue.get("assignee", "Unassigned"),
+                        "issue_type": issue.get("issue_type", "Unknown"),
+                        "current_status": issue.get("status", "Unknown"),
+                        "labels": issue.get("labels", [])
+                    })
+
         # Sort violations by duration (longest first)
         all_violations.sort(key=lambda x: x["duration_days"], reverse=True)
 
-        # Show all violations with their actual durations
+        # Show all violations with their actual durations and ticket details
         categorization.append(f"\nTotal Violations: {len(all_violations)}")
-        categorization.append("\nViolations by Duration (Longest to Shortest):")
+        categorization.append("\n=== Detailed Violation Information ===")
+        categorization.append("(Sorted by Duration: Longest to Shortest)\n")
 
         for violation in all_violations:
-            categorization.append(
-                f"  {violation['key']}: {violation['duration_days']} days in {violation['status']} "
-                f"- {violation['summary'][:60]}..."
-            )
+            categorization.append(f"Ticket: {violation['key']}")
+            categorization.append(f"  Summary: {violation['summary']}")
+            categorization.append(f"  Violation Duration: {violation['duration_days']} days in {violation['status']}")
+            categorization.append(f"  Violation Period: {violation['violation_start']} to {violation['violation_end']}")
+            categorization.append(f"  Sprint: {violation['sprint']}")
+            categorization.append(f"  Priority: {violation['priority']}")
+            categorization.append(f"  Assignee: {violation['assignee']}")
+            categorization.append(f"  Type: {violation['issue_type']}")
+            categorization.append(f"  Current Status: {violation['current_status']}")
+            if violation['labels']:
+                categorization.append(f"  Labels: {', '.join(violation['labels'])}")
+            categorization.append("")  # Blank line between tickets
 
         return "\n".join(categorization)
 

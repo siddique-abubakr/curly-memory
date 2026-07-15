@@ -66,11 +66,11 @@ def main():
             # logger.info(f"\n{status_report}")
 
             # Option 3: WIP Limit Violations only (uncomment to use)
-            # wip_results = jira_analyzer.analyze_wip_violations_only(
-            #     project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
-            # )
-            # wip_report = jira_analyzer.generate_wip_violations_report(wip_results)
-            # logger.info(f"\n{wip_report}")
+            wip_results = jira_analyzer.analyze_wip_violations_only(
+                project, SCRUM_BOARDS, SPRINT_FILTER_CONFIG
+            )
+            wip_report = jira_analyzer.generate_wip_violations_report(wip_results)
+            logger.info(f"\n{wip_report}")
 
             # Option 4: Prod Bug Analysis only (uncomment to use)
             # prod_bug_results = jira_analyzer.analyze_prod_bugs_only(
@@ -89,13 +89,13 @@ def main():
             # logger.info(f"\n{quarterly_report}")
 
             # Option 5: Cycle Time Analysis (integrates Scrum and Kanban issues)
-            cycle_time_results = jira_analyzer.analyze_cycle_time_only(
-                project, ALL_BOARDS, SPRINT_FILTER_CONFIG, "sprint_wise", all_kanban_issues
-            )
-            cycle_time_report = jira_analyzer.generate_cycle_time_report(
-                cycle_time_results
-            )
-            logger.info(f"\n{cycle_time_report}")
+            # cycle_time_results = jira_analyzer.analyze_cycle_time_only(
+            #     project, ALL_BOARDS, SPRINT_FILTER_CONFIG, "sprint_wise", all_kanban_issues
+            # )
+            # cycle_time_report = jira_analyzer.generate_cycle_time_report(
+            #     cycle_time_results
+            # )
+            # logger.info(f"\n{cycle_time_report}")
 
         # Option 6: GitHub PR Analysis (uncomment to use)
         # github_results = github_analyzer.analyze_repository_prs(GITHUB_CONFIG)

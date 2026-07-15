@@ -936,14 +936,26 @@ class IssueService:
 
                     violations["total_violations"] += 1
                     violations["violations_by_status"][status_name]["count"] += 1
-                    violations["violations_by_status"][status_name]["issues"].append({
+
+                    # Get detailed ticket information using correct model attributes
+                    ticket_details = {
                         "key": issue.key,
                         "summary": issue.fields.summary,
                         "duration_days": duration_days,
                         "violation_start": violation["start_date"],
                         "violation_end": violation["end_date"],
-                        "label": violation["label"]
-                    })
+                        "label": violation["label"],
+                        # Additional ticket details for analysis
+                        "priority": issue.fields.priority.name if issue.fields.priority else 'Unknown',
+                        "status": issue.fields.status.name if issue.fields.status else 'Unknown',
+                        "assignee": issue.fields.assignee.display_name if issue.fields.assignee else 'Unassigned',
+                        "created": issue.fields.created,
+                        "updated": issue.fields.updated,
+                        "issue_type": issue.fields.issue_type.name if issue.fields.issue_type else 'Unknown',
+                        "labels": issue.fields.labels if issue.fields.labels else []
+                    }
+
+                    violations["violations_by_status"][status_name]["issues"].append(ticket_details)
                     violations["violations_by_status"][status_name]["total_duration"] += duration_days
 
                     if duration_days > violations["violations_by_status"][status_name]["longest_duration"]:
